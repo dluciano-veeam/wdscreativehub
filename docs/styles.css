@@ -53,7 +53,7 @@ body {
   margin: 0;
   font-family: 'ES Build', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   color: var(--text);
-  background: radial-gradient(circle at 12% -12%, #ffffff 0%, #f7f9fa 55%, #eef1f4 100%);
+  background: radial-gradient(circle at 12% -12%, #ffffff 0%, #f3f5f7 52%, #e3e7eb 100%);
   min-height: 100vh;
 }
 
