@@ -70,6 +70,8 @@ body {
   align-items: flex-end;
   justify-content: space-between;
   margin-bottom: 32px;
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .brand {
@@ -170,6 +172,8 @@ body {
   gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .filter-label {
@@ -210,6 +214,7 @@ body {
 
 .gallery {
   min-height: 200px;
+  opacity: 0;
 }
 
 .grid {
@@ -228,12 +233,43 @@ body {
   display: flex;
   flex-direction: column;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow);
   border-color: rgba(0, 209, 95, 0.35);
+}
+
+.page-ready .hero {
+  animation: fadeUp 0.35s ease forwards;
+}
+
+.page-ready .filters {
+  animation: fadeUp 0.35s ease forwards;
+  animation-delay: 0.1s;
+}
+
+.page-ready .gallery {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.page-ready .card {
+  animation: fadeUp 0.3s ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card img {

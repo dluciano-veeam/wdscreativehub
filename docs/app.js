@@ -9,6 +9,7 @@ const state = {
 };
 
 const DATA_FALLBACK = 'data/pocs.json?v=2';
+const BASE_STAGGER = 0.18;
 
 async function fetchItems() {
   try {
@@ -84,9 +85,10 @@ function renderGallery() {
     return;
   }
 
-  filtered.forEach((item) => {
+  filtered.forEach((item, index) => {
     const card = document.createElement('article');
     card.className = 'card';
+    card.style.animationDelay = `${BASE_STAGGER + index * 0.05}s`;
 
     const media = document.createElement('div');
     media.className = 'card-media';
@@ -141,4 +143,5 @@ searchInput.addEventListener('input', (event) => {
   renderGallery();
 });
 
+document.body.classList.add('page-ready');
 fetchItems();
