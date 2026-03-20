@@ -4,6 +4,8 @@ const detailTags = document.getElementById('detailTags');
 const detailFrame = document.getElementById('detailFrame');
 const DATA_FALLBACK = 'data/pocs.json?v=2';
 
+document.body.classList.add('page-ready');
+
 async function fetchItems() {
   try {
     const res = await fetch('/api/pocs');
