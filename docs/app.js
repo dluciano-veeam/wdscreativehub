@@ -8,7 +8,7 @@ const state = {
   search: ''
 };
 
-const DATA_FALLBACK = 'data/pocs.json';
+const DATA_FALLBACK = 'data/pocs.json?v=2';
 
 async function fetchItems() {
   try {

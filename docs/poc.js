@@ -2,7 +2,7 @@ const detailTitle = document.getElementById('detailTitle');
 const detailDescription = document.getElementById('detailDescription');
 const detailTags = document.getElementById('detailTags');
 const detailFrame = document.getElementById('detailFrame');
-const DATA_FALLBACK = 'data/pocs.json';
+const DATA_FALLBACK = 'data/pocs.json?v=2';
 
 async function fetchItems() {
   try {
