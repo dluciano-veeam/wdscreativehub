@@ -7,6 +7,8 @@ const publicDataDir = path.join(root, 'public', 'data');
 const publicDataDest = path.join(publicDataDir, 'pocs.json');
 const publicDir = path.join(root, 'public');
 const docsDir = path.join(root, 'docs');
+const noJekyllSrc = path.join(publicDir, '.nojekyll');
+const noJekyllDest = path.join(docsDir, '.nojekyll');
 
 async function syncPages() {
   await fs.mkdir(publicDataDir, { recursive: true });
@@ -14,6 +16,12 @@ async function syncPages() {
 
   await fs.mkdir(docsDir, { recursive: true });
   await fs.cp(publicDir, docsDir, { recursive: true, force: true });
+
+  try {
+    await fs.copyFile(noJekyllSrc, noJekyllDest);
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+  }
 }
 
 syncPages().catch((err) => {
