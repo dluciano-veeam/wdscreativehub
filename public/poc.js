@@ -10,10 +10,12 @@ async function fetchItems() {
     if (!res.ok) {
       throw new Error('API not available');
     }
-    return await res.json();
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.items || []);
   } catch (err) {
     const res = await fetch(DATA_FALLBACK);
-    return await res.json();
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.items || []);
   }
 }
 

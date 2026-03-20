@@ -16,10 +16,12 @@ async function fetchItems() {
     if (!res.ok) {
       throw new Error('API not available');
     }
-    items = await res.json();
+    const data = await res.json();
+    items = Array.isArray(data) ? data : (data.items || []);
   } catch (err) {
     const res = await fetch(DATA_FALLBACK);
-    items = await res.json();
+    const data = await res.json();
+    items = Array.isArray(data) ? data : (data.items || []);
   }
   render();
 }
