@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "pages:sync": "node scripts/sync-pages.js"
+    "pages:sync": "node scripts/sync-pages.js",
+    "pages:deploy": "node scripts/pages-deploy.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
