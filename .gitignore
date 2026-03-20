@@ -9,6 +9,10 @@ node_modules/
 
 # Fonts source bundle
 Fonts/
+!public/assets/fonts/
+!public/assets/fonts/**
+!docs/assets/fonts/
+!docs/assets/fonts/**
 
 # macOS
 .DS_Store
