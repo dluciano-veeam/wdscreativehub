@@ -297,11 +297,18 @@ body {
 }
 
 .tag-chip {
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: rgba(0, 209, 95, 0.15);
-  border: 1px solid rgba(0, 209, 95, 0.35);
-  font-size: 0.7rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.72rem;
+  color: var(--veeam-pine);
+  text-transform: lowercase;
+}
+
+.tag-chip::before {
+  content: "#";
+  margin-right: 2px;
+  color: var(--veeam-viridis);
 }
 
 .panel-header {
