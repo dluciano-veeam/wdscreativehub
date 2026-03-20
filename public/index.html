@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Veeam Creative Hub</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div>
+        <div class="brand">
+          <img class="brand-logo" src="/assets/veeam-logo.svg" alt="Veeam logo" />
+          <p class="eyebrow">WDS Creative Hub</p>
+        </div>
+        <h1 class="hero-title hero-title--gradient">POC Gallery</h1>
+        <p class="subtitle">Collect, refine, and showcase UI experiments with AI-assisted styling.</p>
+      </div>
+      <div class="hero-actions">
+        <input id="searchInput" class="input" type="search" placeholder="Search POCs" />
+      </div>
+    </header>
+
+    <section class="filters">
+      <div class="filter-label">Filter by tags</div>
+      <div id="tagFilters" class="tag-filters"></div>
+    </section>
+
+    <main class="layout single">
+      <section class="gallery">
+        <div id="galleryGrid" class="grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

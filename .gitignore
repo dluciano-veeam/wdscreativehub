@@ -1,0 +1,15 @@
+.env
+
+# Ignore secrets
+.env
+.env.*
+
+# Node
+node_modules/
+
+# Fonts source bundle
+Fonts/
+
+# macOS
+.DS_Store
+._*

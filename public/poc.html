@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>POC Detail</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div>
+        <div class="brand">
+          <img class="brand-logo" src="/assets/veeam-logo.svg" alt="Veeam logo" />
+          <p class="eyebrow">WDS Creative Hub</p>
+        </div>
+        <h1 id="detailTitle">POC Detail</h1>
+        <p id="detailDescription" class="subtitle"></p>
+      </div>
+      <div class="hero-actions">
+        <a class="button ghost" href="/">Back to gallery</a>
+        <button id="editBtn" class="button">Edit</button>
+      </div>
+    </header>
+
+    <section class="filters">
+      <div class="filter-label">Tags</div>
+      <div id="detailTags" class="tag-row"></div>
+    </section>
+
+    <main>
+      <div class="preview-block detail-preview">
+        <iframe id="detailFrame" title="Demo" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <script src="/poc.js"></script>
+</body>
+</html>
