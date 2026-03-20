@@ -3,7 +3,7 @@
     {
       "id": "electric-border-viridis",
       "title": "Electric Border (CodePen)",
-      "description": "Electric border effect adapted from B\u00e1lint Ferenczy, recolored to Viridis.",
+      "description": "Electric animated border with turbulence displacement, glow layers, and glass overlays for high-impact UI panels.",
       "tags": [
         "Border",
         "SVG",
@@ -15,7 +15,7 @@
     {
       "id": "liquid-gradient-threejs",
       "title": "Interactive Liquid Gradient (CodePen)",
-      "description": "Interactive liquid gradient using Three.js, adapted from Cameron Knight (CodePen).",
+      "description": "Interactive WebGL liquid gradient with mouse-reactive distortion and color controls, built on Three.js.",
       "tags": [
         "WebGL",
         "Three.js",
@@ -27,7 +27,7 @@
     {
       "id": "animated-border-gradient",
       "title": "Animated Border Gradient (CodePen)",
-      "description": "Animated border gradient adapted from shshaw (CodePen).",
+      "description": "Pure CSS animated conic-border treatment for highlighting cards or callouts without JavaScript.",
       "tags": [
         "Border",
         "Animation",
@@ -39,7 +39,7 @@
     {
       "id": "animated-gradient-background",
       "title": "Animated Gradient Background (CodePen)",
-      "description": "Pure CSS animated gradient background from P1N2O (CodePen).",
+      "description": "CSS-only animated background gradient for dynamic hero sections or landing pages.",
       "tags": [
         "Background",
         "Animation",
@@ -51,7 +51,7 @@
     {
       "id": "grid-hover-aurora",
       "title": "Grid Hover Aurora",
-      "description": "Inspired by Codrops Grid Item Hover Effect. Subtle glow tracking and sheen for enterprise UI cards.",
+      "description": "Responsive card grid with cursor-tracked glow and sheen, ideal for interactive UI galleries.",
       "tags": [
         "Hover",
         "Grid",
@@ -63,7 +63,7 @@
     {
       "id": "grid-item-hover-pulse",
       "title": "Grid Item Hover Effect (Codrops)",
-      "description": "Official Codrops demo adapted for the local gallery (MIT License).",
+      "description": "Directional hover effects for image grids with layered labels and animated reveals.",
       "tags": [
         "Hover",
         "Grid",
