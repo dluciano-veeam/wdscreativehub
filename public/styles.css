@@ -1,5 +1,10 @@
 :root {
   --veeam-viridis: #00D15F;
+  --veeam-mint: #32F26F;
+  --veeam-sky: #57E0FF;
+  --veeam-azure: #3700FF;
+  --veeam-casia: #8E71F4;
+  --veeam-navy: #0E0D72;
   --veeam-pine: #007F49;
   --veeam-dark-mineral: #505861;
   --veeam-fog: #F0F0F0;
@@ -53,14 +58,42 @@ body {
   margin: 0;
   font-family: 'ES Build', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   color: var(--text);
-  background: radial-gradient(circle at 12% -12%, #ffffff 0%, #f3f5f7 52%, #e3e7eb 100%);
+  background: radial-gradient(circle at 18% -10%, #ffffff 0%, #eaf7f2 25%, #dff2ff 45%, #c7dcff 70%, #b6c5f6 100%);
   min-height: 100vh;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  opacity: 0.35;
+  background:
+    radial-gradient(circle at 75% 20%, rgba(0, 209, 95, 0.25), transparent 50%),
+    radial-gradient(circle at 90% 30%, rgba(87, 224, 255, 0.2), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(55, 0, 255, 0.12), transparent 60%);
+  mix-blend-mode: normal;
+}
+
+body::after {
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900' viewBox='0 0 1600 900'%3E%3Cpath d='M-20 640 C 240 560 460 720 720 650 C 980 580 1180 420 1460 520 C 1560 560 1660 620 1720 680' fill='none' stroke='rgba(14,13,114,0.15)' stroke-width='2'/%3E%3Cpath d='M-40 680 C 220 600 480 780 760 700 C 1040 620 1260 460 1540 560 C 1640 600 1740 660 1800 720' fill='none' stroke='rgba(14,13,114,0.12)' stroke-width='1.5'/%3E%3Cpath d='M-60 720 C 200 640 500 820 800 740 C 1080 660 1300 520 1600 600 C 1700 640 1800 700 1880 760' fill='none' stroke='rgba(14,13,114,0.1)' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 70% 15%;
 }
 
 .app {
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 24px 72px;
+  position: relative;
+  z-index: 1;
 }
 
 .hero {
@@ -113,7 +146,7 @@ body {
 
 .subtitle {
   margin: 0;
-  color: var(--muted);
+  color: var(--veeam-navy);
 }
 
 .hero-actions {
