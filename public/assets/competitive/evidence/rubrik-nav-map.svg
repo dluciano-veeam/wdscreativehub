@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640">
+  <rect width="1200" height="640" fill="#0f1722"/>
+  <rect x="40" y="30" width="1120" height="70" rx="12" fill="#1e293b"/>
+  <text x="70" y="75" fill="#f8fafc" font-size="24" font-family="Arial">Top Navigation</text>
+  <rect x="60" y="130" width="260" height="440" rx="14" fill="#1d4ed8" opacity="0.8"/>
+  <rect x="340" y="130" width="260" height="440" rx="14" fill="#0ea5e9" opacity="0.8"/>
+  <rect x="620" y="130" width="260" height="440" rx="14" fill="#10b981" opacity="0.8"/>
+  <rect x="900" y="130" width="240" height="440" rx="14" fill="#f59e0b" opacity="0.8"/>
+  <text x="88" y="170" fill="#ffffff" font-size="22" font-family="Arial">Products</text>
+  <text x="368" y="170" fill="#ffffff" font-size="22" font-family="Arial">Solutions</text>
+  <text x="648" y="170" fill="#ffffff" font-size="22" font-family="Arial">Knowledge</text>
+  <text x="928" y="170" fill="#ffffff" font-size="22" font-family="Arial">About</text>
+  <text x="70" y="615" fill="#93c5fd" font-size="20" font-family="Arial">Visual map: mega-navigation depth and taxonomy grouping</text>
+</svg>

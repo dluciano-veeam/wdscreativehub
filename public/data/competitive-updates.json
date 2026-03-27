@@ -1,0 +1,167 @@
+{
+  "items": [
+    {
+      "id": "rubrik-baseline-2026-03-25",
+      "competitorId": "rubrik",
+      "capturedAt": "2026-03-25",
+      "type": "baseline",
+      "impact": "medium",
+      "title": "Initial technical baseline created",
+      "summary": "Initial homepage capture created to start tracking UI, UX, and functional updates. This is the baseline reference for all upcoming comparisons.",
+      "signals": [
+        "Enterprise navigation architecture",
+        "High-priority CTA hierarchy",
+        "Conversion-oriented page composition"
+      ],
+      "visualMetrics": {
+        "ui": 72,
+        "ux": 68,
+        "functionality": 54
+      },
+      "evidence": {
+        "before": "",
+        "after": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/protected-objects.jpg"
+      },
+      "technicalNotes": [
+        "This record defines the zero frame for future comparisons.",
+        "Editorial text-only changes are excluded from reporting.",
+        "Future captures will be evaluated by structural and visual differences."
+      ]
+    },
+    {
+      "id": "rubrik-inventory-nav-2026-03-25",
+      "competitorId": "rubrik",
+      "capturedAt": "2026-03-25",
+      "type": "baseline",
+      "impact": "high",
+      "title": "Mega-navigation with deep solution taxonomy",
+      "summary": "The homepage exposes a multi-level navigation that organizes platform capabilities by product, solution, environment, and industry, supporting rapid enterprise discovery.",
+      "signals": [
+        "Multi-level mega menu",
+        "Cross-linked IA",
+        "Quick path to platform segments"
+      ],
+      "visualMetrics": {
+        "ui": 84,
+        "ux": 78,
+        "functionality": 61
+      },
+      "evidence": {
+        "before": "",
+        "after": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/recovery-plan.jpg"
+      },
+      "technicalNotes": [
+        "Navigation supports broad content depth without forcing early page exits.",
+        "Information architecture appears optimized for large account buying journeys."
+      ]
+    },
+    {
+      "id": "rubrik-inventory-hero-2026-03-25",
+      "competitorId": "rubrik",
+      "capturedAt": "2026-03-25",
+      "type": "baseline",
+      "impact": "medium",
+      "title": "Hero designed for campaign switching",
+      "summary": "The hero area combines launch messaging, high-visibility CTAs, and media entry points, enabling quick rotation of strategic campaign themes.",
+      "signals": [
+        "Primary CTA pair",
+        "Video entry in hero",
+        "Campaign-driven messaging block"
+      ],
+      "visualMetrics": {
+        "ui": 79,
+        "ux": 70,
+        "functionality": 66
+      },
+      "evidence": {
+        "before": "",
+        "after": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/img-rac-headline.png"
+      },
+      "technicalNotes": [
+        "The hero supports both direct conversion and exploratory learning paths.",
+        "CTA structure suggests optimization for mixed-intent visitors."
+      ]
+    },
+    {
+      "id": "rubrik-inventory-capability-2026-03-25",
+      "competitorId": "rubrik",
+      "capturedAt": "2026-03-25",
+      "type": "baseline",
+      "impact": "medium",
+      "title": "Capability sections use modular storytelling blocks",
+      "summary": "Core capabilities are presented as repeated sections with a stable pattern: problem framing, concise value statement, product visual, and dedicated CTA.",
+      "signals": [
+        "Reusable section template",
+        "Feature-to-benefit mapping",
+        "Scannable component rhythm"
+      ],
+      "visualMetrics": {
+        "ui": 73,
+        "ux": 74,
+        "functionality": 58
+      },
+      "evidence": {
+        "before": "",
+        "after": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/protected-objects.jpg"
+      },
+      "technicalNotes": [
+        "Modular content architecture can simplify experimentation and reorder by priority.",
+        "Pattern consistency reduces cognitive load across long-scroll experiences."
+      ]
+    },
+    {
+      "id": "rubrik-inventory-trust-2026-03-25",
+      "competitorId": "rubrik",
+      "capturedAt": "2026-03-25",
+      "type": "baseline",
+      "impact": "low",
+      "title": "Trust layer integrated into conversion journey",
+      "summary": "Social proof and credibility cues are embedded in the same journey as product education, reducing friction between awareness and evaluation stages.",
+      "signals": [
+        "Customer logo strip",
+        "Proof-oriented narrative",
+        "Embedded trust modules"
+      ],
+      "visualMetrics": {
+        "ui": 62,
+        "ux": 65,
+        "functionality": 48
+      },
+      "evidence": {
+        "before": "",
+        "after": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/identity-protection-overview.jpg"
+      },
+      "technicalNotes": [
+        "Trust modules are not isolated in a single section; they reinforce multiple stages.",
+        "Layout placement suggests an intent to improve mid-funnel confidence."
+      ]
+    },
+    {
+      "id": "rubrik-inventory-interaction-2026-03-25",
+      "competitorId": "rubrik",
+      "capturedAt": "2026-03-25",
+      "type": "baseline",
+      "impact": "medium",
+      "title": "Interaction model favors guided exploration",
+      "summary": "The homepage includes guided interaction patterns such as grouped action links, expandable navigation contexts, and section-level action hooks to keep users moving through the flow.",
+      "signals": [
+        "Section-level CTA hooks",
+        "Guided interaction flow",
+        "Progressive disclosure patterns"
+      ],
+      "visualMetrics": {
+        "ui": 67,
+        "ux": 81,
+        "functionality": 63
+      },
+      "evidence": {
+        "before": "",
+        "after": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/high-risk-agents.jpg"
+      },
+      "technicalNotes": [
+        "Interaction design emphasizes controlled progression rather than free-form browsing.",
+        "Future scans should monitor changes to CTA density and section ordering."
+      ]
+    }
+  ]
+}

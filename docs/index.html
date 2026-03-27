@@ -13,31 +13,127 @@
 </head>
 <body>
   <div class="app">
-    <header class="hero">
-      <div>
-        <div class="brand">
-          <img class="brand-logo" src="./assets/veeam-logo.svg" alt="Veeam logo" />
-          <p class="eyebrow">WDS LABS</p>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="side-brand" href="./" aria-label="WDS Labs home">
+          <img class="side-brand-logo" src="./assets/veeam-logo.svg" alt="Veeam logo" />
+          <span>WDS LABS</span>
+        </a>
+        <nav class="side-nav">
+          <a class="side-link" href="./competitive.html">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18v2H3v-2zm2-3h3V8H5v8zm5 0h3V4h-3v12zm5 0h3v-6h-3v6z"/></svg>
+            <span>Competitive Analysis</span>
+          </a>
+          <a class="side-link active" href="./">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.8 4.5L17 9.3l-4.2 1.8L11 15.6 9.2 11.1 5 9.3l4.2-1.8L11 3zm7 9l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1 1-2.4zM6 13l.8 1.9 1.9.8-1.9.8L6 18.4l-.8-1.9-1.9-.8 1.9-.8L6 13z"/></svg>
+            <span>Creative Hub</span>
+          </a>
+          <a class="side-link" href="#">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v2H5V4zm0 4h14v2H5V8zm0 4h10v2H5v-2zm0 4h8v2H5v-2z"/></svg>
+            <span>Character Count</span>
+          </a>
+          <a class="side-link" href="#">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/></svg>
+            <span>Who we are?</span>
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-content">
+        <div class="top-search">
+          <input id="searchInput" class="input" type="search" placeholder="Search POCs" />
         </div>
-        <h1 class="hero-title hero-title--gradient">Creative Hub</h1>
-        <p class="subtitle">Collect, refine, and showcase UI experiments with AI-assisted styling.</p>
-      </div>
-      <div class="hero-actions">
-        <input id="searchInput" class="input" type="search" placeholder="Search POCs" />
-      </div>
-    </header>
 
-    <section class="filters">
-      <div class="filter-label">Filter by tags</div>
-      <div id="tagFilters" class="tag-filters"></div>
-    </section>
+        <header class="hero">
+          <div>
+            <h1 class="hero-title hero-title--gradient">Creative Hub</h1>
+            <p class="subtitle">Collect, refine, and showcase UI experiments with AI-assisted styling.</p>
+          </div>
+          <div class="hero-actions">
+            <button id="addPocBtn" class="button add-poc">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v14h-2zM5 11h14v2H5z"/></svg>
+              <span>Add POC</span>
+            </button>
+          </div>
+        </header>
 
-    <main class="layout single">
-      <section class="gallery">
-        <div id="galleryGrid" class="grid"></div>
-      </section>
-    </main>
+        <section class="filters">
+          <div class="filter-label">Filter by tags</div>
+          <div id="tagFilters" class="tag-filters"></div>
+        </section>
+
+        <main class="layout single">
+          <section class="gallery">
+            <div id="galleryGrid" class="grid"></div>
+          </section>
+        </main>
+      </div>
+    </div>
   </div>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add POC</h2>
+        <button id="closeModalBtn" class="icon-btn" aria-label="Close">✕</button>
+      </div>
+      <form id="pocForm" class="form">
+        <label>
+          Brief (primary)
+          <textarea id="pocBrief" class="textarea" rows="4" placeholder="Visual and functional notes for this POC." required></textarea>
+        </label>
+        <label>
+          Brief screenshots (optional)
+          <input id="pocBriefImages" class="input" type="file" accept="image/*" multiple />
+        </label>
+        <label>
+          Title
+          <div class="input-row">
+            <input id="pocTitle" class="input" type="text" />
+          </div>
+        </label>
+        <label>
+          Description
+          <div class="input-row">
+            <textarea id="pocDescription" class="textarea" rows="3"></textarea>
+          </div>
+        </label>
+        <label>
+          Thumbnail (upload)
+          <input id="pocThumbnail" class="input" type="file" accept="image/*" />
+        </label>
+        <label>
+          POC ZIP (optional)
+          <input id="pocZip" class="input" type="file" accept=".zip,application/zip" />
+          <span class="field-hint">Upload a CodePen export. We auto-detect <strong>index.html</strong> or another HTML file anywhere in the ZIP.</span>
+        </label>
+        <label>
+          Tags (comma separated)
+          <div class="input-row">
+            <input id="pocTags" class="input" type="text" placeholder="Hover, Grid, Interaction" />
+          </div>
+        </label>
+        <label>
+          POC HTML (optional)
+          <textarea id="pocCode" class="textarea code" rows="8" placeholder="Paste the full HTML here."></textarea>
+          <span class="field-hint">If you upload a ZIP, this field will be ignored.</span>
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="cancelModalBtn" class="button ghost">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4l-6.3 6.31-1.41-1.42L9.17 12 2.88 5.71 4.29 4.3l6.3 6.3 6.3-6.3z"/></svg>
+            <span>Cancel</span>
+          </button>
+          <button type="submit" class="button primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 16.2-3.5-3.5L4 14.2l5 5 11-11-1.5-1.4z"/></svg>
+            <span>Save</span>
+          </button>
+        </div>
+        <p id="modalNote" class="modal-note"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="globalToast" class="global-toast hidden" role="status" aria-live="polite"></div>
 
   <script src="./app.js"></script>
 </body>

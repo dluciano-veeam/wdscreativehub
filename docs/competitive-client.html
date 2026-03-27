@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WDS LABS - Competitive Dashboard</title>
+  <link rel="icon" href="https://www.veeam.com/favicon.ico">
+  <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Medium.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="side-brand" href="./" aria-label="WDS Labs home">
+          <img class="side-brand-logo" src="./assets/veeam-logo.svg" alt="Veeam logo" />
+          <span>WDS LABS</span>
+        </a>
+        <nav class="side-nav">
+          <a class="side-link active" href="./competitive.html">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18v2H3v-2zm2-3h3V8H5v8zm5 0h3V4h-3v12zm5 0h3v-6h-3v6z"/></svg>
+            <span>Competitive Analysis</span>
+          </a>
+          <a class="side-link" href="./">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.8 4.5L17 9.3l-4.2 1.8L11 15.6 9.2 11.1 5 9.3l4.2-1.8L11 3zm7 9l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1 1-2.4zM6 13l.8 1.9 1.9.8-1.9.8L6 18.4l-.8-1.9-1.9-.8 1.9-.8L6 13z"/></svg>
+            <span>Creative Hub</span>
+          </a>
+          <a class="side-link" href="#">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v2H5V4zm0 4h14v2H5V8zm0 4h10v2H5v-2zm0 4h8v2H5v-2z"/></svg>
+            <span>Character Count</span>
+          </a>
+          <a class="side-link" href="#">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/></svg>
+            <span>Who we are?</span>
+          </a>
+        </nav>
+      </aside>
+
+      <div class="main-content">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="./competitive.html">Competitive Analysis</a>
+          <span>/</span>
+          <span id="clientCrumb">Client dashboard</span>
+        </nav>
+
+        <header class="hero">
+          <div>
+            <h1 id="clientTitle" class="hero-title">Competitor</h1>
+            <p id="clientSubtitle" class="subtitle"></p>
+          </div>
+          <div class="hero-actions">
+            <a id="clientSiteLink" class="button" target="_blank" rel="noreferrer noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z"/></svg>
+              <span>Visit competitor site</span>
+            </a>
+            <a class="button ghost" href="./competitive.html">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h8v8H3V4zm10 0h8v8h-8V4zM3 14h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
+              <span>Back to list</span>
+            </a>
+          </div>
+        </header>
+
+        <section class="competitive-kpis" id="kpiRow"></section>
+
+        <main class="competitive-dashboard">
+          <section class="preview-block competitive-frame-wrap">
+            <div class="preview-header">
+              <h3>Live snapshot</h3>
+            </div>
+            <img id="snapshotImage" class="competitive-snapshot" alt="Competitor snapshot" />
+          </section>
+
+          <section class="preview-block competitive-updates-wrap">
+            <div class="preview-header">
+              <h3>Technical update timeline (UI/UX only)</h3>
+            </div>
+            <p id="baselineNote" class="competitive-baseline-note hidden"></p>
+            <div id="updatesTimeline" class="competitive-updates"></div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script src="./competitive-client.js"></script>
+</body>
+</html>

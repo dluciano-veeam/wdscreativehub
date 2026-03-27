@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "rubrik",
+      "name": "Rubrik",
+      "website": "https://www.rubrik.com/",
+      "thumbnail": "/assets/competitive/logos/rubrik-logo.svg",
+      "thumbnailFit": "contain",
+      "liveSnapshot": "https://www.rubrik.com/content/dam/rubrik/home-page-redesign/protected-objects.jpg",
+      "region": "Global",
+      "category": "Data Security & Cyber Recovery",
+      "status": "monitoring",
+      "trackingSince": "2026-03-25",
+      "notes": "First competitor configured for technical UI/UX monitoring.",
+      "labels": [
+        "Enterprise",
+        "B2B SaaS",
+        "Cybersecurity"
+      ]
+    }
+  ]
+}
