@@ -2,6 +2,9 @@ const competitorGrid = document.getElementById('competitorGrid');
 const competitorSearch = document.getElementById('competitorSearch');
 const competitiveCount = document.getElementById('competitiveCount');
 
+const SITE_BASE_PATH = window.location.pathname.includes('/wdscreativehub/')
+  ? '/wdscreativehub'
+  : '';
 const DATA_FALLBACK = 'data/competitors.json?v=1';
 
 let competitors = [];
@@ -28,9 +31,20 @@ function normalizeItems(data) {
   return Array.isArray(data) ? data : (data.items || []);
 }
 
+function withBasePath(path) {
+  if (!path) return '';
+  if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:')) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return `${SITE_BASE_PATH}${path}`;
+  }
+  return path;
+}
+
 async function fetchCompetitors() {
   try {
-    const res = await fetch('/api/competitors');
+    const res = await fetch(withBasePath('/api/competitors'));
     if (!res.ok) throw new Error('api unavailable');
     const data = await res.json();
     competitors = normalizeItems(data);
@@ -71,7 +85,7 @@ function render() {
 
     const img = document.createElement('img');
     img.alt = item.name || 'Competitor thumbnail';
-    img.src = item.thumbnail || getLiveThumb(item.website) || getDefaultThumb(item.name || 'Competitor');
+    img.src = withBasePath(item.thumbnail) || getLiveThumb(item.website) || getDefaultThumb(item.name || 'Competitor');
     img.style.objectFit = (item.thumbnailFit || 'cover').toLowerCase();
     img.addEventListener('error', () => {
       img.src = getDefaultThumb(item.name || 'Competitor');

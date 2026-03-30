@@ -12,6 +12,9 @@ const UPDATES_FALLBACK = 'data/competitive-updates.json?v=1';
 const params = new URLSearchParams(window.location.search);
 const competitorId = params.get('id') || 'rubrik';
 const HEURISTIC_MODEL_VERSION = 'v1.0';
+const SITE_BASE_PATH = window.location.pathname.includes('/wdscreativehub/')
+  ? '/wdscreativehub'
+  : '';
 
 const HEURISTIC_FORMULA = {
   ui: {
@@ -82,12 +85,15 @@ function getSnapshotFallback(name) {
   );
 }
 
-function toAbsoluteUrl(maybeRelative) {
-  if (!maybeRelative) return '';
-  if (/^https?:\/\//i.test(maybeRelative) || maybeRelative.startsWith('data:')) {
-    return maybeRelative;
+function withBasePath(path) {
+  if (!path) return '';
+  if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:')) {
+    return path;
   }
-  return `${window.location.origin}${maybeRelative.startsWith('/') ? '' : '/'}${maybeRelative}`;
+  if (path.startsWith('/')) {
+    return `${SITE_BASE_PATH}${path}`;
+  }
+  return path;
 }
 
 function clampScore(value) {
@@ -145,7 +151,7 @@ function computeHeuristicMetrics(item) {
 
 async function fetchCompetitor() {
   try {
-    const res = await fetch('/api/competitors');
+    const res = await fetch(withBasePath('/api/competitors'));
     if (!res.ok) throw new Error('api unavailable');
     const data = await res.json();
     return normalizeItems(data).find((item) => item.id === competitorId) || null;
@@ -158,7 +164,7 @@ async function fetchCompetitor() {
 
 async function fetchUpdates() {
   try {
-    const res = await fetch(`/api/competitors/${encodeURIComponent(competitorId)}/updates`);
+    const res = await fetch(withBasePath(`/api/competitors/${encodeURIComponent(competitorId)}/updates`));
     if (!res.ok) throw new Error('api unavailable');
     const data = await res.json();
     return normalizeItems(data);
@@ -268,9 +274,9 @@ function renderUpdates(updates, competitor) {
         </div>
       </div>
       <div class="competitive-evidence">
-        ${evidenceBefore ? `<figure class="competitive-evidence-item"><img src="${toAbsoluteUrl(evidenceBefore)}" alt="Previous snapshot evidence"><figcaption>Before</figcaption></figure>` : ''}
+        ${evidenceBefore ? `<figure class="competitive-evidence-item"><img src="${withBasePath(evidenceBefore)}" alt="Previous snapshot evidence"><figcaption>Before</figcaption></figure>` : ''}
         <figure class="competitive-evidence-item">
-          <img src="${toAbsoluteUrl(evidenceAfter)}" alt="Current snapshot evidence">
+          <img src="${withBasePath(evidenceAfter)}" alt="Current snapshot evidence">
           <figcaption>${evidenceBefore ? 'After' : 'Current evidence'}</figcaption>
         </figure>
       </div>
@@ -310,11 +316,11 @@ async function init() {
   const localThumb = competitor.thumbnail || '';
   const fallback = getSnapshotFallback(competitor.name || 'Competitor');
   let usedLocalThumb = false;
-  snapshotImage.src = liveSnapshot || localThumb || fallback;
+  snapshotImage.src = withBasePath(liveSnapshot || localThumb || fallback);
   snapshotImage.alt = `${competitor.name || 'Competitor'} latest homepage snapshot`;
   snapshotImage.addEventListener('error', () => {
     if (!usedLocalThumb && localThumb) {
-      snapshotImage.src = toAbsoluteUrl(localThumb);
+      snapshotImage.src = withBasePath(localThumb);
       usedLocalThumb = true;
       return;
     }
