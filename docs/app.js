@@ -34,6 +34,21 @@ const DATA_FALLBACK = 'data/pocs.json?v=2';
 const BASE_STAGGER = 0.18;
 const MEDIA_HEIGHTS = [176, 208, 236, 268, 296];
 let masonryRaf = null;
+const SITE_BASE_PATH = (() => {
+  const isGitHubPages = window.location.hostname.endsWith('github.io');
+  if (!isGitHubPages) return '';
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  return parts.length ? `/${parts[0]}` : '';
+})();
+
+function withBasePath(value) {
+  if (!value) return value;
+  if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) {
+    return value;
+  }
+  if (value.startsWith('/')) return `${SITE_BASE_PATH}${value}`;
+  return value;
+}
 
 function getMasonryConfig() {
   if (window.matchMedia('(max-width: 960px)').matches) {
@@ -200,7 +215,7 @@ function renderGallery() {
 
     const img = document.createElement('img');
     img.alt = item.title;
-    img.src = item.thumbnail || 'data:image/svg+xml;charset=utf-8,' +
+    img.src = withBasePath(item.thumbnail) || 'data:image/svg+xml;charset=utf-8,' +
       encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320"><rect width="100%" height="100%" fill="#e8eef0"/><text x="50%" y="50%" fill="#505861" font-size="22" font-family="Arial" text-anchor="middle" dy=".3em">No thumbnail</text></svg>`);
     media.appendChild(img);
     img.addEventListener('load', queueMasonryLayout);

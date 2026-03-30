@@ -25,9 +25,24 @@ const pocCode = document.getElementById('pocCode');
 const modalNote = document.getElementById('modalNote');
 const globalToast = document.getElementById('globalToast');
 const DATA_FALLBACK = 'data/pocs.json?v=2';
+const SITE_BASE_PATH = (() => {
+  const isGitHubPages = window.location.hostname.endsWith('github.io');
+  if (!isGitHubPages) return '';
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  return parts.length ? `/${parts[0]}` : '';
+})();
 let apiAvailable = true;
 let currentItem = null;
 let editOriginalCode = '';
+
+function withBasePath(value) {
+  if (!value) return value;
+  if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) {
+    return value;
+  }
+  if (value.startsWith('/')) return `${SITE_BASE_PATH}${value}`;
+  return value;
+}
 
 function injectTypographyIntoFrame() {
   try {
@@ -40,21 +55,21 @@ function injectTypographyIntoFrame() {
     style.textContent = `
       @font-face {
         font-family: "ES Build";
-        src: url("/assets/fonts/esbuild/ESBuildNeutral-Regular.woff2") format("woff2");
+        src: url("${withBasePath('/assets/fonts/esbuild/ESBuildNeutral-Regular.woff2')}") format("woff2");
         font-weight: 400;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: "ES Build";
-        src: url("/assets/fonts/esbuild/ESBuildNeutral-Medium.woff2") format("woff2");
+        src: url("${withBasePath('/assets/fonts/esbuild/ESBuildNeutral-Medium.woff2')}") format("woff2");
         font-weight: 500;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: "ES Build";
-        src: url("/assets/fonts/esbuild/ESBuildNeutral-SemiBold.woff2") format("woff2");
+        src: url("${withBasePath('/assets/fonts/esbuild/ESBuildNeutral-SemiBold.woff2')}") format("woff2");
         font-weight: 600;
         font-style: normal;
         font-display: swap;
@@ -88,7 +103,7 @@ function resolveAssetPath(baseEntry, assetPath) {
 async function fetchTextSafe(url) {
   try {
     const sep = url.includes('?') ? '&' : '?';
-    const res = await fetch(`${url}${sep}v=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(withBasePath(`${url}${sep}v=${Date.now()}`), { cache: 'no-store' });
     if (!res.ok) return '';
     return await res.text();
   } catch {
@@ -160,13 +175,16 @@ function isExternalOrDataPath(value) {
 
 function toProjectRelativePath(pathname) {
   if (!pathname) return '';
+  if (SITE_BASE_PATH && pathname.startsWith(`${SITE_BASE_PATH}/`)) {
+    return pathname.slice(SITE_BASE_PATH.length + 1);
+  }
   return pathname.startsWith('/') ? pathname.slice(1) : pathname;
 }
 
 async function fetchBinarySafe(url) {
   try {
     const sep = url.includes('?') ? '&' : '?';
-    const res = await fetch(`${url}${sep}v=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(withBasePath(`${url}${sep}v=${Date.now()}`), { cache: 'no-store' });
     if (!res.ok) return null;
     return await res.arrayBuffer();
   } catch {
@@ -316,7 +334,7 @@ copyButtons.forEach((btn) => {
 
 async function fetchItems() {
   try {
-    const res = await fetch('/api/pocs');
+    const res = await fetch(withBasePath('/api/pocs'));
     if (!res.ok) {
       throw new Error('API not available');
     }
@@ -412,7 +430,7 @@ async function loadDetail() {
   if (item.entry) {
     detailFrame.removeAttribute('srcdoc');
     const sep = item.entry.includes('?') ? '&' : '?';
-    detailFrame.src = `${item.entry}${sep}v=${Date.now()}`;
+    detailFrame.src = withBasePath(`${item.entry}${sep}v=${Date.now()}`);
   } else {
     detailFrame.srcdoc = item.code || '';
   }
