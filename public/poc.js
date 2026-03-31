@@ -186,10 +186,8 @@ function applyCodeLineNumbers(codeEl, sourceText) {
   }
   gutter.replaceChildren(fragment);
 
-  pre.onscroll = () => {
-    gutter.style.transform = `translateY(${-pre.scrollTop}px)`;
-  };
-  gutter.style.transform = `translateY(${-pre.scrollTop}px)`;
+  pre.onscroll = null;
+  gutter.style.transform = 'none';
 }
 
 function sanitizeFileName(value) {
