@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Animated Mask Reveal</title>
+  <style>
+    :root {
+      --wdslabs-viridis: #00d15f;
+      --wdslabs-bg: #050913;
+      --wdslabs-panel: #0c1424;
+      --wdslabs-border: rgba(255, 255, 255, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(0, 209, 95, 0.12), transparent 42%),
+        radial-gradient(circle at 82% 20%, rgba(55, 0, 255, 0.16), transparent 42%),
+        var(--wdslabs-bg);
+      font-family: "ES Build", "Segoe UI", Arial, sans-serif;
+      color: #ffffff;
+      overflow: hidden;
+      padding: 22px;
+    }
+
+    .wdslabs-stage {
+      width: min(1000px, 94vw);
+      aspect-ratio: 1920 / 2164;
+      max-height: 90vh;
+      position: relative;
+      overflow: hidden;
+      background: var(--wdslabs-panel);
+    }
+
+    .wdslabs-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      user-select: none;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .wdslabs-layer--top {
+      z-index: 3;
+      filter: saturate(1.02) contrast(1.03);
+    }
+
+    .wdslabs-layer--bottom {
+      z-index: 2;
+    }
+
+    .wdslabs-mask-window {
+      position: absolute;
+      z-index: 4;
+      left: 0;
+      top: 0;
+      width: 180px;
+      height: 180px;
+      border-radius: 0;
+      pointer-events: none;
+      will-change: transform;
+      background-image: url("./top.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="wdslabs-stage" id="wdslabs-stage" aria-label="Animated mask reveal demo">
+    <img class="wdslabs-layer wdslabs-layer--top" src="./bottom.jpg" alt="Base visual layer" />
+    <div class="wdslabs-mask-window" id="wdslabs-window" aria-hidden="true"></div>
+  </div>
+
+  <script>
+    const wdslabsStage = document.getElementById('wdslabs-stage');
+    const wdslabsWindow = document.getElementById('wdslabs-window');
+
+    let wdslabsStart = performance.now();
+
+    function wdslabsAnimate(time) {
+      const rect = wdslabsStage.getBoundingClientRect();
+      const t = (time - wdslabsStart) / 1000;
+
+      const w = rect.width;
+      const h = rect.height;
+
+      const maskW = w * 0.155;
+      const maskH = maskW * 3.4;
+      const rangeX = w * 0.055;
+      const rangeY = h * 0.035;
+      const centerX = w * 0.5;
+      const centerY = h * 0.44;
+      const x = centerX + Math.sin(t * 0.35) * rangeX - maskW * 0.5;
+      const y = centerY + Math.cos(t * 0.42) * rangeY - maskH * 0.5;
+
+      wdslabsWindow.style.width = `${maskW}px`;
+      wdslabsWindow.style.height = `${maskH}px`;
+      wdslabsWindow.style.transform = `translate(${x}px, ${y}px)`;
+      wdslabsWindow.style.backgroundSize = `${w}px ${h}px`;
+      wdslabsWindow.style.backgroundPosition = `${-x}px ${-y}px`;
+
+      requestAnimationFrame(wdslabsAnimate);
+    }
+
+    requestAnimationFrame(wdslabsAnimate);
+  </script>
+</body>
+</html>

@@ -1,6 +1,20 @@
 {
   "items": [
     {
+      "id": "animated-mask-reveal",
+      "title": "Animated Mask Reveal",
+      "description": "Two stacked images with a floating rectangular reveal mask that subtly moves in a continuous loop to expose the lower layer.",
+      "tags": [
+        "Mask",
+        "Animation",
+        "Image",
+        "Interaction"
+      ],
+      "code": "",
+      "thumbnail": "/pocs/animated-mask-reveal/reference.jpg",
+      "entry": "/pocs/animated-mask-reveal/index.html"
+    },
+    {
       "id": "untitled-poc-mn68ston",
       "title": "Liquid Glass Switcher Css",
       "description": "Liquid Glass Switcher Css is an uploaded ZIP demo focused on css patterns, ready for review and refinement.",

@@ -876,8 +876,9 @@ iframe {
 }
 
 .code-view {
+  position: relative;
   margin: 0;
-  padding: 12px;
+  padding: 12px 12px 12px 48px;
   max-height: 22vh;
   overflow: auto;
   white-space: pre;
@@ -889,6 +890,24 @@ iframe {
   color: #d6deeb;
   background: #0f1722;
   contain: content;
+}
+
+.code-line-numbers {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 38px;
+  padding-right: 8px;
+  color: #7b8a99;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: right;
+  user-select: none;
+  pointer-events: none;
+}
+
+.code-line-numbers span {
+  display: block;
 }
 
 .code-view code {

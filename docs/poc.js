@@ -160,6 +160,36 @@ async function buildCodePanels(sourceHtml, entryPath) {
     window.Prism.highlightElement(codeCss);
     window.Prism.highlightElement(codeJs);
   }
+
+  applyCodeLineNumbers(codeHtml, htmlOutput);
+  applyCodeLineNumbers(codeCss, cssOutput);
+  applyCodeLineNumbers(codeJs, jsOutput);
+}
+
+function applyCodeLineNumbers(codeEl, sourceText) {
+  const pre = codeEl?.closest('pre');
+  if (!pre) return;
+
+  const lineCount = Math.max(1, String(sourceText || '').split('\n').length);
+  let gutter = pre.querySelector('.code-line-numbers');
+  if (!gutter) {
+    gutter = document.createElement('div');
+    gutter.className = 'code-line-numbers';
+    pre.appendChild(gutter);
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (let i = 1; i <= lineCount; i += 1) {
+    const line = document.createElement('span');
+    line.textContent = String(i);
+    fragment.appendChild(line);
+  }
+  gutter.replaceChildren(fragment);
+
+  pre.onscroll = () => {
+    gutter.style.transform = `translateY(${-pre.scrollTop}px)`;
+  };
+  gutter.style.transform = `translateY(${-pre.scrollTop}px)`;
 }
 
 function sanitizeFileName(value) {
