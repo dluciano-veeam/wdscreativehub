@@ -6,6 +6,9 @@ const kpiRow = document.getElementById('kpiRow');
 const updatesTimeline = document.getElementById('updatesTimeline');
 const snapshotImage = document.getElementById('snapshotImage');
 const baselineNote = document.getElementById('baselineNote');
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const sidebar = document.querySelector('.sidebar');
 
 const COMPETITORS_FALLBACK = 'data/competitors.json?v=1';
 const UPDATES_FALLBACK = 'data/competitive-updates.json?v=1';
@@ -48,6 +51,28 @@ const HEURISTIC_FORMULA = {
     ]
   }
 };
+
+function initMobileSidebar() {
+  if (!mobileMenuToggle || !sidebarOverlay || !sidebar) return;
+
+  const closeMenu = () => {
+    document.body.classList.remove('menu-open');
+    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  mobileMenuToggle.addEventListener('click', () => {
+    const open = !document.body.classList.contains('menu-open');
+    document.body.classList.toggle('menu-open', open);
+    mobileMenuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  sidebarOverlay.addEventListener('click', closeMenu);
+  sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+  window.addEventListener('resize', () => {
+    if (!window.matchMedia('(max-width: 960px)').matches) {
+      closeMenu();
+    }
+  });
+}
 
 function normalizeItems(data) {
   return Array.isArray(data) ? data : (data.items || []);
@@ -331,4 +356,5 @@ async function init() {
   renderUpdates(updates, competitor);
 }
 
+initMobileSidebar();
 init();

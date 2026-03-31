@@ -81,11 +81,8 @@ body::before {
 }
 
 body::after {
-  opacity: 0.4;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900' viewBox='0 0 1600 900'%3E%3Cpath d='M-20 640 C 240 560 460 720 720 650 C 980 580 1180 420 1460 520 C 1560 560 1660 620 1720 680' fill='none' stroke='rgba(14,13,114,0.15)' stroke-width='2'/%3E%3Cpath d='M-40 680 C 220 600 480 780 760 700 C 1040 620 1260 460 1540 560 C 1640 600 1740 660 1800 720' fill='none' stroke='rgba(14,13,114,0.12)' stroke-width='1.5'/%3E%3Cpath d='M-60 720 C 200 640 500 820 800 740 C 1080 660 1300 520 1600 600 C 1700 640 1800 700 1880 760' fill='none' stroke='rgba(14,13,114,0.1)' stroke-width='1.2'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 70% 15%;
+  opacity: 0;
+  background: none;
 }
 
 .app {
@@ -93,7 +90,6 @@ body::after {
   margin: 0;
   padding: 0;
   position: relative;
-  z-index: 1;
 }
 
 .shell {
@@ -175,6 +171,33 @@ body::after {
 .top-search {
   display: block;
   margin-bottom: 16px;
+}
+
+.top-search--detail {
+  display: none;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: #000000;
+  flex: 0 0 48px;
+}
+
+.mobile-menu-toggle svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.sidebar-overlay {
+  display: none;
 }
 
 .top-search .input {
@@ -476,6 +499,10 @@ body::after {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.tags-accordion-toggle {
+  display: none;
 }
 
 .tag-filters .tag {
@@ -1313,16 +1340,33 @@ iframe {
   }
 
   .sidebar {
-    position: relative;
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-    padding: 16px 18px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 120;
+    width: min(82vw, 320px);
+    height: 100vh;
+    border-right: 1px solid rgba(255, 255, 255, 0.45);
+    border-bottom: 0;
+    padding: 16px 14px;
+    transform: translateX(-105%);
+    transition: transform 0.22s ease;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px) saturate(1.08);
+    -webkit-backdrop-filter: blur(14px) saturate(1.08);
+    box-shadow: 12px 0 32px rgba(0, 0, 0, 0.14);
+  }
+
+  body.menu-open {
+    overflow: hidden;
+  }
+
+  body.menu-open .sidebar {
+    transform: translateX(0);
   }
 
   .side-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
   }
 
   .main-content {
@@ -1330,11 +1374,107 @@ iframe {
   }
 
   .top-search {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .top-search .input {
+    flex: 1;
     height: 48px;
+  }
+
+  .top-search--detail {
+    display: flex;
+    margin-bottom: 8px;
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+    border: 0;
+    background: transparent;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    border: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(6px) saturate(0.9);
+    -webkit-backdrop-filter: blur(6px) saturate(0.9);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+
+  body.menu-open .sidebar-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .filters.filters-tags {
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .filters.filters-tags .filter-label {
+    display: none;
+  }
+
+  .tags-accordion-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #000000;
+    font-family: "ES Build", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0;
+  }
+
+  .tags-accordion-toggle svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    transition: transform 0.2s ease;
+  }
+
+  .filters.filters-tags.collapsed .tag-filters {
+    display: none;
+  }
+
+  .filters.filters-tags.collapsed .tags-accordion-toggle svg {
+    transform: rotate(-90deg);
+  }
+
+  .filters.filters-tags .tag-filters {
+    margin-top: 8px;
+  }
+
+  .hero h1,
+  .hero-title {
+    line-height: 1.05;
+  }
+
+  .subtitle {
+    line-height: 1.26;
+    font-size: 0.98rem;
+  }
+
+  .card-body h3 {
+    line-height: 1.1;
+  }
+
+  .card-body p {
+    line-height: 1.28;
   }
 
   .grid {

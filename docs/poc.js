@@ -24,6 +24,9 @@ const pocBriefImages = document.getElementById('pocBriefImages');
 const pocCode = document.getElementById('pocCode');
 const modalNote = document.getElementById('modalNote');
 const globalToast = document.getElementById('globalToast');
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const sidebar = document.querySelector('.sidebar');
 const DATA_FALLBACK = 'data/pocs.json?v=2';
 const SITE_BASE_PATH = (() => {
   const isGitHubPages = window.location.hostname.endsWith('github.io');
@@ -34,6 +37,28 @@ const SITE_BASE_PATH = (() => {
 let apiAvailable = true;
 let currentItem = null;
 let editOriginalCode = '';
+
+function initMobileSidebar() {
+  if (!mobileMenuToggle || !sidebarOverlay || !sidebar) return;
+
+  const closeMenu = () => {
+    document.body.classList.remove('menu-open');
+    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  mobileMenuToggle.addEventListener('click', () => {
+    const open = !document.body.classList.contains('menu-open');
+    document.body.classList.toggle('menu-open', open);
+    mobileMenuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  sidebarOverlay.addEventListener('click', closeMenu);
+  sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+  window.addEventListener('resize', () => {
+    if (!window.matchMedia('(max-width: 960px)').matches) {
+      closeMenu();
+    }
+  });
+}
 
 function withBasePath(value) {
   if (!value) return value;
@@ -540,4 +565,5 @@ if (pocForm) {
   });
 }
 
+initMobileSidebar();
 loadDetail();

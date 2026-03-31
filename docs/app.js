@@ -17,6 +17,11 @@ const pocBriefImages = document.getElementById('pocBriefImages');
 const pocCode = document.getElementById('pocCode');
 const modalNote = document.getElementById('modalNote');
 const globalToast = document.getElementById('globalToast');
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const sidebar = document.querySelector('.sidebar');
+const tagAccordionToggle = document.getElementById('tagAccordionToggle');
+const tagFiltersSection = document.getElementById('tagFiltersSection');
 let items = [];
 let selectedTags = new Set();
 let apiAvailable = true;
@@ -25,6 +30,8 @@ let editOriginalCode = '';
 let toastTimer = null;
 const params = new URLSearchParams(window.location.search);
 const autoEditId = params.get('edit');
+const mobileMediaQuery = window.matchMedia('(max-width: 960px)');
+let tagsCollapsed = mobileMediaQuery.matches;
 
 const state = {
   search: ''
@@ -48,6 +55,43 @@ function withBasePath(value) {
   }
   if (value.startsWith('/')) return `${SITE_BASE_PATH}${value}`;
   return value;
+}
+
+function initMobileSidebar() {
+  if (!mobileMenuToggle || !sidebarOverlay || !sidebar) return;
+
+  const closeMenu = () => {
+    document.body.classList.remove('menu-open');
+    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const toggleMenu = () => {
+    const open = !document.body.classList.contains('menu-open');
+    document.body.classList.toggle('menu-open', open);
+    mobileMenuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  mobileMenuToggle.addEventListener('click', toggleMenu);
+  sidebarOverlay.addEventListener('click', closeMenu);
+  sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+  window.addEventListener('resize', () => {
+    if (!mobileMediaQuery.matches) {
+      closeMenu();
+    }
+  });
+}
+
+function syncTagAccordion() {
+  if (!tagAccordionToggle || !tagFiltersSection) return;
+
+  if (!mobileMediaQuery.matches) {
+    tagFiltersSection.classList.remove('collapsed');
+    tagAccordionToggle.setAttribute('aria-expanded', 'true');
+    return;
+  }
+
+  tagFiltersSection.classList.toggle('collapsed', tagsCollapsed);
+  tagAccordionToggle.setAttribute('aria-expanded', tagsCollapsed ? 'false' : 'true');
 }
 
 function getMasonryConfig() {
@@ -275,6 +319,16 @@ searchInput.addEventListener('input', (event) => {
   renderGallery();
 });
 
+if (tagAccordionToggle) {
+  tagAccordionToggle.addEventListener('click', () => {
+    if (!mobileMediaQuery.matches) return;
+    tagsCollapsed = !tagsCollapsed;
+    syncTagAccordion();
+  });
+}
+
+window.addEventListener('resize', syncTagAccordion);
+
 window.addEventListener('resize', queueMasonryLayout);
 
 function openModal() {
@@ -391,6 +445,8 @@ pocForm.addEventListener('submit', async (event) => {
 });
 
 document.body.classList.add('page-ready');
+initMobileSidebar();
+syncTagAccordion();
 fetchItems().then(() => {
   if (apiAvailable && autoEditId) {
     const item = items.find((poc) => poc.id === autoEditId);
