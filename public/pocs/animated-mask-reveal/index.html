@@ -10,6 +10,8 @@
       --wdslabs-bg: #050913;
       --wdslabs-panel: #0c1424;
       --wdslabs-border: rgba(255, 255, 255, 0.14);
+      --wdslabs-canvas-w: 1920;
+      --wdslabs-canvas-h: 1539;
     }
 
     * {
@@ -18,23 +20,17 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background:
-        radial-gradient(circle at 15% 15%, rgba(0, 209, 95, 0.12), transparent 42%),
-        radial-gradient(circle at 82% 20%, rgba(55, 0, 255, 0.16), transparent 42%),
-        var(--wdslabs-bg);
+      width: 100vw;
+      height: 100vh;
+      background: transparent;
       font-family: "ES Build", "Segoe UI", Arial, sans-serif;
       color: #ffffff;
       overflow: hidden;
-      padding: 22px;
     }
 
     .wdslabs-stage {
-      width: min(1000px, 94vw);
-      aspect-ratio: 1920 / 2164;
-      max-height: 90vh;
+      width: 100vw;
+      height: 100vh;
       position: relative;
       overflow: hidden;
       background: var(--wdslabs-panel);
@@ -56,13 +52,42 @@
       filter: saturate(1.02) contrast(1.03);
     }
 
-    .wdslabs-layer--bottom {
-      z-index: 2;
+    .wdslabs-fade-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    .wdslabs-fade-side {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: min(50%, 960px);
+    }
+
+    .wdslabs-fade-side--left {
+      left: 0;
+      background: linear-gradient(90deg, rgba(0, 32, 96, 1) 0%, rgba(14, 78, 106, 0) 40%);
+    }
+
+    .wdslabs-fade-side--right {
+      right: 0;
+      background: linear-gradient(270deg, rgba(0, 32, 96, 1) 0%, rgba(0, 32, 96, 0) 40%);
+    }
+
+    .wdslabs-fade-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: min(65.11%, 1002px);
+      background: linear-gradient(180deg, rgba(18, 103, 181, 0) 0%, rgba(9, 69, 151, 0.81) 39%, rgba(0, 32, 96, 1) 80%);
     }
 
     .wdslabs-mask-window {
       position: absolute;
-      z-index: 4;
+      z-index: 6;
       left: 0;
       top: 0;
       width: 180px;
@@ -84,11 +109,47 @@
       pointer-events: none;
       -webkit-user-drag: none;
     }
+
+    @media (max-width: 1200px) {
+      :root {
+        --wdslabs-canvas-w: 1024;
+        --wdslabs-canvas-h: 1563;
+      }
+
+      .wdslabs-fade-side { display: none; }
+      .wdslabs-fade-bottom { background: linear-gradient(180deg, rgba(18, 103, 181, 0) 20%, rgba(31, 113, 149, 0.8) 46%, rgba(0, 32, 96, 1) 100%); }
+    }
+
+    @media (max-width: 820px) {
+      :root {
+        --wdslabs-canvas-w: 768;
+        --wdslabs-canvas-h: 1543;
+      }
+
+      .wdslabs-fade-side { display: none; }
+      .wdslabs-fade-bottom { background: linear-gradient(180deg, rgba(18, 103, 181, 0) 39%, rgba(0, 32, 96, 1) 100%); }
+    }
+
+    @media (max-width: 430px) {
+      :root {
+        --wdslabs-canvas-w: 375;
+        --wdslabs-canvas-h: 1271;
+      }
+
+      .wdslabs-fade-side { display: none; }
+      .wdslabs-fade-bottom { background: linear-gradient(180deg, rgba(18, 103, 181, 0) 39%, rgba(0, 30, 91, 1) 100%); }
+    }
+
   </style>
 </head>
 <body>
   <div class="wdslabs-stage" id="wdslabs-stage" aria-label="Animated mask reveal demo">
     <img class="wdslabs-layer wdslabs-layer--top" src="./bottom.jpg" alt="Base visual layer" />
+    <div class="wdslabs-fade-overlay" aria-hidden="true">
+      <div class="wdslabs-fade-side wdslabs-fade-side--left"></div>
+      <div class="wdslabs-fade-side wdslabs-fade-side--right"></div>
+      <div class="wdslabs-fade-bottom"></div>
+    </div>
     <div class="wdslabs-mask-window" id="wdslabs-window" aria-hidden="true">
       <img class="wdslabs-mask-image" id="wdslabs-mask-image" src="./top.jpg" alt="" />
     </div>
@@ -105,26 +166,44 @@
       h: 0,
       maskW: 0,
       maskH: 0,
-      rangeX: 0,
       rangeY: 0,
-      centerX: 0,
-      centerY: 0
+      anchorX: 0,
+      centerY: 0,
+      anchorMode: "left-center"
     };
+
+    function wdslabsGetSpec() {
+      const vw = window.innerWidth;
+      if (vw <= 430) {
+        return { canvasW: 375, canvasH: 1271, maskW: 78, maskH: 852, anchorMode: "right-edge" };
+      }
+      if (vw <= 820) {
+        return { canvasW: 768, canvasH: 1543, maskW: 188, maskH: 973, anchorMode: "left-center" };
+      }
+      if (vw <= 1200) {
+        return { canvasW: 1024, canvasH: 1563, maskW: 233, maskH: 775, anchorMode: "right-edge" };
+      }
+      return { canvasW: 1920, canvasH: 1539, maskW: 282, maskH: 962, anchorMode: "left-center" };
+    }
 
     function wdslabsRecomputeLayout() {
       const rect = wdslabsStage.getBoundingClientRect();
       const w = rect.width;
       const h = rect.height;
-      const maskW = w * 0.155;
-      const maskH = maskW * 3.4;
+      const spec = wdslabsGetSpec();
+      const baseScale = Math.min(w / spec.canvasW, h / spec.canvasH);
+      const isDesktopSpec = spec.canvasW === 1920;
+      const scale = isDesktopSpec ? Math.min(1, baseScale) : baseScale;
+      const maskW = spec.maskW * scale;
+      const maskH = spec.maskH * scale;
 
       wdslabsLayout.w = w;
       wdslabsLayout.h = h;
       wdslabsLayout.maskW = maskW;
       wdslabsLayout.maskH = maskH;
-      wdslabsLayout.rangeX = w * 0.055;
       wdslabsLayout.rangeY = h * 0.035;
-      wdslabsLayout.centerX = w * 0.5;
+      wdslabsLayout.anchorMode = spec.anchorMode;
+      wdslabsLayout.anchorX = spec.anchorMode === "right-edge" ? (w - maskW) : (w * 0.5);
       wdslabsLayout.centerY = h * 0.54;
 
       wdslabsWindow.style.width = `${maskW}px`;
@@ -135,7 +214,7 @@
 
     function wdslabsAnimate(time) {
       const t = (time - wdslabsStart) / 1000;
-      const x = wdslabsLayout.centerX + Math.sin(t * 0.35) * wdslabsLayout.rangeX - wdslabsLayout.maskW * 0.5;
+      const x = wdslabsLayout.anchorX;
       const y = wdslabsLayout.centerY + Math.cos(t * 0.42) * wdslabsLayout.rangeY - wdslabsLayout.maskH * 0.5;
 
       wdslabsWindow.style.transform = `translate3d(${x}px, ${y}px, 0)`;

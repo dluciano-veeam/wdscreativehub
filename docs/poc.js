@@ -5,7 +5,8 @@ const detailFrame = document.getElementById('detailFrame');
 const detailEditBtn = document.getElementById('detailEditBtn');
 const exportZipBtn = document.getElementById('exportZipBtn');
 const detailCrumbCurrent = document.getElementById('detailCrumbCurrent');
-const refreshCodeBtn = document.getElementById('refreshCodeBtn');
+const detailFullViewBtn = document.getElementById('detailFullViewBtn');
+const detailExitViewBtn = document.getElementById('detailExitViewBtn');
 const codeHtml = document.getElementById('codeHtml');
 const codeCss = document.getElementById('codeCss');
 const codeJs = document.getElementById('codeJs');
@@ -37,6 +38,29 @@ const SITE_BASE_PATH = (() => {
 let apiAvailable = true;
 let currentItem = null;
 let editOriginalCode = '';
+let fullViewTimer = null;
+
+function openDetailFullView() {
+  if (fullViewTimer) clearTimeout(fullViewTimer);
+  document.body.classList.remove('poc-leaving-fullview');
+  document.body.classList.add('poc-entering-fullview');
+  document.body.classList.add('poc-fullview');
+  if (detailExitViewBtn) detailExitViewBtn.classList.remove('hidden');
+  fullViewTimer = setTimeout(() => {
+    document.body.classList.remove('poc-entering-fullview');
+  }, 280);
+}
+
+function closeDetailFullView() {
+  if (fullViewTimer) clearTimeout(fullViewTimer);
+  document.body.classList.remove('poc-entering-fullview');
+  document.body.classList.add('poc-leaving-fullview');
+  fullViewTimer = setTimeout(() => {
+    document.body.classList.remove('poc-fullview');
+    document.body.classList.remove('poc-leaving-fullview');
+    if (detailExitViewBtn) detailExitViewBtn.classList.add('hidden');
+  }, 240);
+}
 
 function initMobileSidebar() {
   if (!mobileMenuToggle || !sidebarOverlay || !sidebar) return;
@@ -489,10 +513,6 @@ async function loadDetail() {
   }
 
   await refreshSourcePanels();
-  if (refreshCodeBtn) {
-    refreshCodeBtn.onclick = refreshSourcePanels;
-  }
-
 }
 
 if (exportZipBtn) {
@@ -508,6 +528,20 @@ if (detailEditBtn) {
     openEditModal(currentItem);
   });
 }
+
+if (detailFullViewBtn) {
+  detailFullViewBtn.addEventListener('click', openDetailFullView);
+}
+
+if (detailExitViewBtn) {
+  detailExitViewBtn.addEventListener('click', closeDetailFullView);
+}
+
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && document.body.classList.contains('poc-fullview')) {
+    closeDetailFullView();
+  }
+});
 
 if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);

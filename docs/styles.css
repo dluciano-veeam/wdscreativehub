@@ -778,6 +778,13 @@ body::after {
   background: #ffffff;
 }
 
+.detail-preview.preview-block {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+
 .brief-block {
   margin: 0 0 20px;
   padding: 16px 18px;
@@ -833,6 +840,98 @@ iframe {
 
 .detail-preview iframe {
   min-height: 70vh;
+  border-radius: 0;
+  background: transparent;
+  transition: transform 0.26s ease, opacity 0.26s ease;
+}
+
+.detail-exit-view-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(10, 16, 28, 0.76);
+  color: #ffffff;
+  font-family: "ES Build", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.detail-exit-view-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+body.poc-fullview .sidebar,
+body.poc-fullview .top-search,
+body.poc-fullview .breadcrumb,
+body.poc-fullview .hero,
+body.poc-fullview .filters,
+body.poc-fullview .code-stack,
+body.poc-fullview #modalOverlay,
+body.poc-fullview #globalToast,
+body.poc-fullview #sidebarOverlay {
+  display: none !important;
+}
+
+body.poc-fullview .main-content {
+  padding: 0;
+}
+
+body.poc-fullview .detail-workspace {
+  display: block;
+}
+
+body.poc-fullview .detail-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+}
+
+body.poc-fullview .detail-preview iframe {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+}
+
+body.poc-entering-fullview .detail-preview iframe {
+  animation: pocFullViewIn 0.28s ease both;
+}
+
+body.poc-leaving-fullview .detail-preview iframe {
+  animation: pocFullViewOut 0.24s ease both;
+}
+
+@keyframes pocFullViewIn {
+  0% {
+    opacity: 0.86;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pocFullViewOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(0.99);
+  }
 }
 
 .detail-workspace {

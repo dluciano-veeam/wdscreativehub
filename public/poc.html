@@ -49,10 +49,6 @@
           <a href="./">Creative Hub</a>
           <span>/</span>
           <span id="detailCrumbCurrent">POC Detail</span>
-          <button id="refreshCodeBtn" class="code-refresh-btn" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6V3L8 7l4 4V8c2.8 0 5 2.2 5 5a5 5 0 0 1-9.9 1H5.1A7 7 0 1 0 12 6z"/></svg>
-            <span>Refresh Code</span>
-          </button>
         </nav>
 
         <header class="hero">
@@ -61,6 +57,14 @@
             <p id="detailDescription" class="subtitle"></p>
           </div>
           <div class="hero-actions">
+            <a class="button ghost" href="./">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h8v8H3V4zm10 0h8v8h-8V4zM3 14h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
+              <span>Back to gallery</span>
+            </a>
+            <button id="detailFullViewBtn" class="button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H5v5zm10 7h-3v2h5v-5h-2v3zm0-12v3h2V5h-5v2h3z"/></svg>
+              <span>Full View</span>
+            </button>
             <button id="exportZipBtn" class="button" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v2H4V7zm0 5h16v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5zm8 1-3 3h2v2h2v-2h2l-3-3z"/></svg>
               <span>Export ZIP</span>
@@ -68,10 +72,6 @@
             <a id="detailEditBtn" class="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17.3 11-11 3.7 3.7-11 11H3v-3.7zM20.7 7a1 1 0 0 0 0-1.4L18.4 3.3a1 1 0 0 0-1.4 0l-1.6 1.6 3.7 3.7L20.7 7z"/></svg>
               <span>Edit POC</span>
-            </a>
-            <a class="button ghost" href="./">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h8v8H3V4zm10 0h8v8h-8V4zM3 14h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
-              <span>Back to gallery</span>
             </a>
           </div>
         </header>
@@ -121,6 +121,10 @@
       </div>
     </div>
   </div>
+  <button id="detailExitViewBtn" class="detail-exit-view-btn hidden" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4-6.3-6.3-6.3 6.3-1.4-1.4L9.2 12 2.9 5.7l1.4-1.4 6.3 6.3 6.3-6.3z"/></svg>
+    <span>Exit Full View</span>
+  </button>
   <button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="Close menu"></button>
 
   <div id="modalOverlay" class="modal-overlay hidden">
