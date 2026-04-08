@@ -1064,11 +1064,10 @@ body.poc-leaving-fullview .detail-preview iframe {
 
 .perf-gauge-value {
   fill: none;
-  stroke: #00d15f;
   stroke-width: 8;
   stroke-linecap: round;
   stroke-dasharray: 0 100;
-  transition: stroke-dasharray 0.42s ease, stroke 0.32s ease;
+  transition: stroke-dasharray 0.42s ease;
 }
 
 .perf-gauge-svg--full .perf-gauge-value {
@@ -1115,6 +1114,21 @@ body.poc-leaving-fullview .detail-preview iframe {
 
 .perf-metric strong.perf-low {
   color: #d92f2f;
+}
+
+.perf-metric strong.perf-med {
+  color: #b16f00;
+}
+
+.perf-metric strong.perf-ok {
+  color: #0b7d35;
+}
+
+.perf-fps-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
 }
 
 .perf-size-card {
@@ -1185,6 +1199,13 @@ body.poc-leaving-fullview .detail-preview iframe {
   border-top: 1px dashed rgba(14, 13, 114, 0.2);
   margin-top: 2px;
   padding-top: 4px;
+}
+
+.perf-sparkline--inline {
+  height: 20px;
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .perf-sparkline polyline {

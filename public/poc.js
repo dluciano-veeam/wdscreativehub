@@ -16,8 +16,10 @@ const perfHeap = document.getElementById('perfHeap');
 const perfStatus = document.getElementById('perfStatus');
 const perfFpsArc = document.getElementById('perfFpsArc');
 const perfFpsNeedle = document.getElementById('perfFpsNeedle');
+const perfFpsCap = document.getElementById('perfFpsCap');
 const perfRamArc = document.getElementById('perfRamArc');
 const perfRamNeedle = document.getElementById('perfRamNeedle');
+const perfRamCap = document.getElementById('perfRamCap');
 const perfScriptsBar = document.getElementById('perfScriptsBar');
 const perfImagesBar = document.getElementById('perfImagesBar');
 const perfScriptsValue = document.getElementById('perfScriptsValue');
@@ -58,6 +60,17 @@ let fpsGaugeHandle = 0;
 let fpsGaugeTimer = null;
 let fpsGaugeWindow = null;
 let fpsHistory = [];
+const FPS_GRADIENT_STOPS = [
+  { p: 0, c: '#d92f2f' },
+  { p: 35, c: '#f2a41a' },
+  { p: 55, c: '#00d15f' },
+  { p: 100, c: '#00d15f' }
+];
+const RAM_GRADIENT_STOPS = [
+  { p: 0, c: '#00d15f' },
+  { p: 55, c: '#f2a41a' },
+  { p: 100, c: '#d92f2f' }
+];
 
 function openDetailFullView() {
   if (fullViewTimer) clearTimeout(fullViewTimer);
@@ -324,9 +337,53 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function hexToRgb(hex) {
+  const clean = String(hex || '').replace('#', '');
+  const value = clean.length === 3
+    ? clean.split('').map((ch) => `${ch}${ch}`).join('')
+    : clean;
+  return {
+    r: parseInt(value.slice(0, 2), 16),
+    g: parseInt(value.slice(2, 4), 16),
+    b: parseInt(value.slice(4, 6), 16)
+  };
+}
+
+function rgbToHex({ r, g, b }) {
+  const toHex = (v) => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function gradientColorAt(stops, pct) {
+  const t = clamp(pct, 0, 100);
+  if (!Array.isArray(stops) || stops.length === 0) return '#0b7d35';
+  if (t <= stops[0].p) return stops[0].c;
+  for (let i = 1; i < stops.length; i += 1) {
+    const prev = stops[i - 1];
+    const curr = stops[i];
+    if (t <= curr.p) {
+      const span = curr.p - prev.p || 1;
+      const alpha = (t - prev.p) / span;
+      const a = hexToRgb(prev.c);
+      const b = hexToRgb(curr.c);
+      return rgbToHex({
+        r: a.r + (b.r - a.r) * alpha,
+        g: a.g + (b.g - a.g) * alpha,
+        b: a.b + (b.b - a.b) * alpha
+      });
+    }
+  }
+  return stops[stops.length - 1].c;
+}
+
 function setNeedleRotation(needleEl, degrees) {
   if (!needleEl) return;
   needleEl.setAttribute('transform', `rotate(${degrees} 60 60)`);
+}
+
+function setNeedleColor(needleEl, capEl, color) {
+  if (needleEl) needleEl.style.stroke = color;
+  if (capEl) capEl.style.fill = color;
 }
 
 function setGaugeArc(arcEl, pct, color) {
@@ -339,9 +396,15 @@ function updateFpsSparkline(fpsValue) {
   if (!perfFpsSparkline) return;
   fpsHistory.push(clamp(fpsValue, 0, 120));
   if (fpsHistory.length > 28) fpsHistory = fpsHistory.slice(-28);
+  const svg = perfFpsSparkline.ownerSVGElement;
+  const vb = svg?.viewBox?.baseVal;
+  const width = vb?.width || 120;
+  const height = vb?.height || 22;
+  const maxY = height - 2;
+  const minY = 2;
   const points = fpsHistory.map((value, idx) => {
-    const x = (idx / 27) * 180;
-    const y = 34 - (clamp(value, 0, 60) / 60) * 30;
+    const x = (idx / 27) * width;
+    const y = maxY - (clamp(value, 0, 60) / 60) * (maxY - minY);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
   perfFpsSparkline.setAttribute('points', points.join(' '));
@@ -350,9 +413,11 @@ function updateFpsSparkline(fpsValue) {
 function updateFpsGaugeVisual(fpsValue) {
   const safeFps = clamp(Number(fpsValue) || 0, 0, 120);
   const pct = clamp((safeFps / 60) * 100, 0, 100);
-  const color = safeFps < 30 ? '#d92f2f' : (safeFps < 45 ? '#f2a41a' : '#00d15f');
-  setGaugeArc(perfFpsArc, pct, color);
+  setGaugeArc(perfFpsArc, pct);
   setNeedleRotation(perfFpsNeedle, -90 + (pct / 100) * 180);
+  const statusColor = gradientColorAt(FPS_GRADIENT_STOPS, pct);
+  setNeedleColor(perfFpsNeedle, perfFpsCap, statusColor);
+  if (perfFps) perfFps.style.color = statusColor;
 }
 
 function readIframeMemory() {
@@ -378,14 +443,27 @@ function readIframeHeapText() {
 function updateRamGaugeVisual() {
   const memory = readIframeMemory();
   if (!memory.supported) {
-    setGaugeArc(perfRamArc, 0, '#8a94a4');
+    setGaugeArc(perfRamArc, 0);
     setNeedleRotation(perfRamNeedle, -90);
+    setNeedleColor(perfRamNeedle, perfRamCap, '#8a94a4');
+    if (perfHeap) perfHeap.style.color = '#8a94a4';
+    if (perfHeap) {
+      perfHeap.classList.remove('perf-low', 'perf-med', 'perf-ok');
+    }
     return;
   }
   const usedPct = memory.total > 0 ? clamp((memory.used / memory.total) * 100, 0, 100) : 0;
-  const color = usedPct > 85 ? '#d92f2f' : (usedPct > 70 ? '#f2a41a' : '#00d15f');
-  setGaugeArc(perfRamArc, usedPct, color);
+  setGaugeArc(perfRamArc, usedPct);
   setNeedleRotation(perfRamNeedle, -90 + (usedPct / 100) * 180);
+  const statusColor = gradientColorAt(RAM_GRADIENT_STOPS, usedPct);
+  setNeedleColor(perfRamNeedle, perfRamCap, statusColor);
+  if (perfHeap) perfHeap.style.color = statusColor;
+  if (perfHeap) {
+    perfHeap.classList.remove('perf-low', 'perf-med', 'perf-ok');
+    if (usedPct > 85) perfHeap.classList.add('perf-low');
+    else if (usedPct > 70) perfHeap.classList.add('perf-med');
+    else perfHeap.classList.add('perf-ok');
+  }
 }
 
 function updateSizeBars(sizeBreakdown) {
@@ -490,7 +568,10 @@ function startFpsGauge() {
   fpsGaugeTimer = setInterval(() => {
     const fpsValue = frameCount;
     perfFps.textContent = `${fpsValue} fps`;
-    perfFps.classList.toggle('perf-low', fpsValue < 30);
+    perfFps.classList.remove('perf-low', 'perf-med', 'perf-ok');
+    if (fpsValue < 20) perfFps.classList.add('perf-low');
+    else if (fpsValue < 30) perfFps.classList.add('perf-med');
+    else perfFps.classList.add('perf-ok');
     updateFpsGaugeVisual(fpsValue);
     updateFpsSparkline(fpsValue);
     frameCount = 0;
@@ -516,9 +597,11 @@ async function updatePerformanceGauge(item, htmlSource) {
   stopFpsGauge();
 
   perfFps.textContent = 'Measuring...';
-  perfFps.classList.remove('perf-low');
+  perfFps.style.color = '#00110a';
+  perfFps.classList.remove('perf-low', 'perf-med', 'perf-ok');
   perfAssetSize.textContent = 'Calculating...';
   perfHeap.textContent = 'Checking...';
+  perfHeap.style.color = '#00110a';
   perfStatus.textContent = 'Estimating metrics for this POC...';
   updateFpsGaugeVisual(0);
   updateRamGaugeVisual();

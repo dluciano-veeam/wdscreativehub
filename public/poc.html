@@ -98,22 +98,42 @@
                   <div class="perf-gauges">
                     <div class="perf-gauge">
                       <svg class="perf-gauge-svg" viewBox="0 0 120 70" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="perfFpsGradient" x1="14" y1="60" x2="106" y2="60" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#d92f2f"></stop>
+                            <stop offset="35%" stop-color="#f2a41a"></stop>
+                            <stop offset="55%" stop-color="#00d15f"></stop>
+                            <stop offset="100%" stop-color="#00d15f"></stop>
+                          </linearGradient>
+                        </defs>
                         <path class="perf-gauge-track" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
-                        <path id="perfFpsArc" class="perf-gauge-value" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
+                        <path id="perfFpsArc" class="perf-gauge-value" d="M14 60 A46 46 0 0 1 106 60" pathLength="100" stroke="url(#perfFpsGradient)"></path>
                         <line id="perfFpsNeedle" class="perf-gauge-needle" x1="60" y1="60" x2="60" y2="18"></line>
-                        <circle class="perf-gauge-cap" cx="60" cy="60" r="3"></circle>
+                        <circle id="perfFpsCap" class="perf-gauge-cap" cx="60" cy="60" r="3"></circle>
                       </svg>
                       <div class="perf-metric">
                         <span class="perf-label">FPS</span>
-                        <strong id="perfFps">Measuring...</strong>
+                        <div class="perf-fps-line">
+                          <strong id="perfFps">Measuring...</strong>
+                          <svg class="perf-sparkline perf-sparkline--inline" viewBox="0 0 120 22" aria-hidden="true">
+                            <polyline id="perfFpsSparkline" points="" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     <div class="perf-gauge">
                       <svg class="perf-gauge-svg" viewBox="0 0 120 70" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="perfRamGradient" x1="14" y1="60" x2="106" y2="60" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#00d15f"></stop>
+                            <stop offset="55%" stop-color="#f2a41a"></stop>
+                            <stop offset="100%" stop-color="#d92f2f"></stop>
+                          </linearGradient>
+                        </defs>
                         <path class="perf-gauge-track" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
-                        <path id="perfRamArc" class="perf-gauge-value" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
+                        <path id="perfRamArc" class="perf-gauge-value" d="M14 60 A46 46 0 0 1 106 60" pathLength="100" stroke="url(#perfRamGradient)"></path>
                         <line id="perfRamNeedle" class="perf-gauge-needle" x1="60" y1="60" x2="60" y2="18"></line>
-                        <circle class="perf-gauge-cap" cx="60" cy="60" r="3"></circle>
+                        <circle id="perfRamCap" class="perf-gauge-cap" cx="60" cy="60" r="3"></circle>
                       </svg>
                       <div class="perf-metric">
                         <span class="perf-label">RAM (Chrome)</span>
@@ -136,9 +156,6 @@
                       <div class="perf-size-track"><i id="perfImagesBar"></i></div>
                       <b id="perfImagesValue">0 KB</b>
                     </div>
-                    <svg class="perf-sparkline" viewBox="0 0 180 36" aria-hidden="true">
-                      <polyline id="perfFpsSparkline" points="" />
-                    </svg>
                   </div>
                 </div>
                 <p id="perfStatus" class="perf-status">Estimating metrics for this POC...</p>
