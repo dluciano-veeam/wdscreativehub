@@ -956,6 +956,79 @@ body.poc-leaving-fullview .detail-preview iframe {
   top: 16px;
 }
 
+.perf-panel {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.perf-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f8fafb;
+}
+
+.perf-panel h3 {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+}
+
+.perf-item {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 9px;
+  padding: 6px 7px;
+  background: #ffffff;
+  min-width: 0;
+}
+
+.perf-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6a7380;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.perf-item strong {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #00110a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.perf-item strong.perf-low {
+  color: #d92f2f;
+}
+
+.perf-status {
+  margin: 0;
+  padding: 0 8px 8px;
+  color: #5e6875;
+  font-size: 0.66rem;
+}
+
 .code-panel {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.1);

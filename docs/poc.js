@@ -10,6 +10,10 @@ const detailExitViewBtn = document.getElementById('detailExitViewBtn');
 const codeHtml = document.getElementById('codeHtml');
 const codeCss = document.getElementById('codeCss');
 const codeJs = document.getElementById('codeJs');
+const perfFps = document.getElementById('perfFps');
+const perfAssetSize = document.getElementById('perfAssetSize');
+const perfHeap = document.getElementById('perfHeap');
+const perfStatus = document.getElementById('perfStatus');
 const copyButtons = Array.from(document.querySelectorAll('.code-copy-btn'));
 const modalOverlay = document.getElementById('modalOverlay');
 const closeModalBtn = document.getElementById('closeModalBtn');
@@ -39,6 +43,10 @@ let apiAvailable = true;
 let currentItem = null;
 let editOriginalCode = '';
 let fullViewTimer = null;
+let memoryGaugeTimer = null;
+let fpsGaugeHandle = 0;
+let fpsGaugeTimer = null;
+let fpsGaugeWindow = null;
 
 function openDetailFullView() {
   if (fullViewTimer) clearTimeout(fullViewTimer);
@@ -267,6 +275,140 @@ async function fetchBinarySafe(url) {
   } catch {
     return null;
   }
+}
+
+function formatKB(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 KB';
+  return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
+function readIframeHeapText() {
+  try {
+    const memory = detailFrame?.contentWindow?.performance?.memory;
+    if (!memory || !Number.isFinite(memory.usedJSHeapSize)) return 'N/A';
+    return `${(memory.usedJSHeapSize / (1024 * 1024)).toFixed(2)} MB`;
+  } catch {
+    return 'N/A';
+  }
+}
+
+async function calculatePocPackageSizeBytes(item, htmlSource) {
+  if (!item) return { scripts: 0, images: 0 };
+  const encoder = new TextEncoder();
+  const parsed = new DOMParser().parseFromString(htmlSource || '', 'text/html');
+  let scriptBytes = 0;
+  let imageBytes = 0;
+
+  parsed.querySelectorAll('script:not([src])').forEach((node) => {
+    const inline = (node.textContent || '').trim();
+    if (inline) {
+      scriptBytes += encoder.encode(inline).byteLength;
+    }
+  });
+
+  if (!item.entry) {
+    return { scripts: scriptBytes, images: imageBytes };
+  }
+
+  const assets = collectAssetCandidatesFromHtml(htmlSource, item.entry || '/index.html');
+  const queue = Array.from(assets);
+  const added = new Set();
+
+  while (queue.length) {
+    const absolutePath = queue.shift();
+    if (!absolutePath || added.has(absolutePath)) continue;
+    added.add(absolutePath);
+
+    const data = await fetchBinarySafe(absolutePath);
+    if (!data) continue;
+    const relPath = toProjectRelativePath(absolutePath).toLowerCase();
+    const isScript = relPath.endsWith('.js') || relPath.endsWith('.mjs');
+    const isImage = /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico|tiff?)$/i.test(relPath);
+
+    if (isScript) scriptBytes += data.byteLength;
+    if (isImage) imageBytes += data.byteLength;
+
+    if (absolutePath.endsWith('.css')) {
+      const cssText = new TextDecoder().decode(data);
+      const nestedRefs = collectUrlsFromCss(cssText, absolutePath);
+      nestedRefs.forEach((ref) => {
+        if (!added.has(ref)) queue.push(ref);
+      });
+    }
+  }
+
+  return { scripts: scriptBytes, images: imageBytes };
+}
+
+function stopFpsGauge() {
+  if (fpsGaugeHandle && fpsGaugeWindow?.cancelAnimationFrame) {
+    fpsGaugeWindow.cancelAnimationFrame(fpsGaugeHandle);
+  }
+  if (fpsGaugeTimer) {
+    clearInterval(fpsGaugeTimer);
+    fpsGaugeTimer = null;
+  }
+  fpsGaugeHandle = 0;
+  fpsGaugeWindow = null;
+}
+
+function startFpsGauge() {
+  stopFpsGauge();
+  if (!perfFps) return;
+
+  let targetWindow = null;
+  try {
+    targetWindow = detailFrame?.contentWindow || null;
+  } catch {
+    targetWindow = null;
+  }
+  if (!targetWindow || !targetWindow.requestAnimationFrame) {
+    perfFps.textContent = 'N/A';
+    return;
+  }
+
+  fpsGaugeWindow = targetWindow;
+  let frameCount = 0;
+  const tick = () => {
+    frameCount += 1;
+    fpsGaugeHandle = fpsGaugeWindow.requestAnimationFrame(tick);
+  };
+  fpsGaugeHandle = fpsGaugeWindow.requestAnimationFrame(tick);
+
+  fpsGaugeTimer = setInterval(() => {
+    const fpsValue = frameCount;
+    perfFps.textContent = `${fpsValue} fps`;
+    perfFps.classList.toggle('perf-low', fpsValue < 30);
+    frameCount = 0;
+  }, 1000);
+}
+
+async function updatePerformanceGauge(item, htmlSource) {
+  if (!perfAssetSize || !perfHeap || !perfStatus || !perfFps) return;
+  if (memoryGaugeTimer) {
+    clearInterval(memoryGaugeTimer);
+    memoryGaugeTimer = null;
+  }
+  stopFpsGauge();
+
+  perfFps.textContent = 'Measuring...';
+  perfFps.classList.remove('perf-low');
+  perfAssetSize.textContent = 'Calculating...';
+  perfHeap.textContent = 'Checking...';
+  perfStatus.textContent = 'Estimating metrics for this POC...';
+
+  const sizeBreakdown = await calculatePocPackageSizeBytes(item, htmlSource);
+  perfAssetSize.textContent = `${formatKB(sizeBreakdown.scripts)} / ${formatKB(sizeBreakdown.images)}`;
+  perfHeap.textContent = readIframeHeapText();
+  startFpsGauge();
+  perfStatus.textContent = perfHeap.textContent === 'N/A'
+    ? 'RAM check is available only in Chrome-based browsers.'
+    : 'Live heap value updates every 3 seconds.';
+
+  memoryGaugeTimer = setInterval(() => {
+    if (document.hidden) return;
+    perfHeap.textContent = readIframeHeapText();
+  }, 3000);
 }
 
 function collectAssetCandidatesFromHtml(html, entryPath) {
@@ -500,8 +642,9 @@ async function loadDetail() {
     detailTags.appendChild(chip);
   });
   async function refreshSourcePanels() {
-  const sourceHtml = item.entry ? await fetchTextSafe(item.entry) : (item.code || '');
-  await buildCodePanels(sourceHtml, item.entry || '');
+    const sourceHtml = item.entry ? await fetchTextSafe(item.entry) : (item.code || '');
+    await buildCodePanels(sourceHtml, item.entry || '');
+    await updatePerformanceGauge(item, sourceHtml);
   }
 
   if (item.entry) {
@@ -540,6 +683,14 @@ if (detailExitViewBtn) {
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && document.body.classList.contains('poc-fullview')) {
     closeDetailFullView();
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  stopFpsGauge();
+  if (memoryGaugeTimer) {
+    clearInterval(memoryGaugeTimer);
+    memoryGaugeTimer = null;
   }
 });
 

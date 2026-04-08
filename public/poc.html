@@ -86,6 +86,26 @@
             <iframe id="detailFrame" title="Demo" sandbox="allow-scripts allow-same-origin"></iframe>
           </div>
           <aside class="code-stack" aria-label="Source code panels">
+            <section class="perf-panel" aria-label="POC performance gauge">
+              <div class="perf-panel-head">
+                <h3>Performance Gauge</h3>
+              </div>
+              <div class="perf-grid">
+                <div class="perf-item">
+                  <span class="perf-label">FPS</span>
+                  <strong id="perfFps">Measuring...</strong>
+                </div>
+                <div class="perf-item">
+                  <span class="perf-label">Size (Scripts / Images)</span>
+                  <strong id="perfAssetSize">Calculating...</strong>
+                </div>
+                <div class="perf-item">
+                  <span class="perf-label">RAM (Chrome only)</span>
+                  <strong id="perfHeap">Checking...</strong>
+                </div>
+              </div>
+              <p id="perfStatus" class="perf-status">Estimating metrics for this POC...</p>
+            </section>
             <section class="code-panel">
               <div class="code-panel-head">
                 <h3>HTML</h3>
