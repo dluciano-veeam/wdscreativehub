@@ -89,52 +89,111 @@
             <section class="perf-panel" aria-label="POC performance gauge">
               <div class="perf-panel-head">
                 <h3>Performance Gauge</h3>
+                <button class="panel-toggle-btn" type="button" aria-expanded="true" aria-label="Toggle performance panel">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
+                </button>
               </div>
-              <div class="perf-grid">
-                <div class="perf-item">
-                  <span class="perf-label">FPS</span>
-                  <strong id="perfFps">Measuring...</strong>
+              <div class="panel-body">
+                <div class="perf-dashboard">
+                  <div class="perf-gauges">
+                    <div class="perf-gauge">
+                      <svg class="perf-gauge-svg" viewBox="0 0 120 70" aria-hidden="true">
+                        <path class="perf-gauge-track" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
+                        <path id="perfFpsArc" class="perf-gauge-value" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
+                        <line id="perfFpsNeedle" class="perf-gauge-needle" x1="60" y1="60" x2="60" y2="18"></line>
+                        <circle class="perf-gauge-cap" cx="60" cy="60" r="3"></circle>
+                      </svg>
+                      <div class="perf-metric">
+                        <span class="perf-label">FPS</span>
+                        <strong id="perfFps">Measuring...</strong>
+                      </div>
+                    </div>
+                    <div class="perf-gauge">
+                      <svg class="perf-gauge-svg" viewBox="0 0 120 70" aria-hidden="true">
+                        <path class="perf-gauge-track" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
+                        <path id="perfRamArc" class="perf-gauge-value" d="M14 60 A46 46 0 0 1 106 60" pathLength="100"></path>
+                        <line id="perfRamNeedle" class="perf-gauge-needle" x1="60" y1="60" x2="60" y2="18"></line>
+                        <circle class="perf-gauge-cap" cx="60" cy="60" r="3"></circle>
+                      </svg>
+                      <div class="perf-metric">
+                        <span class="perf-label">RAM (Chrome)</span>
+                        <strong id="perfHeap">Checking...</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="perf-size-card">
+                    <div class="perf-size-head">
+                      <span class="perf-label">Size (Scripts / Images)</span>
+                      <strong id="perfAssetSize">Calculating...</strong>
+                    </div>
+                    <div class="perf-size-row">
+                      <span>Scripts</span>
+                      <div class="perf-size-track"><i id="perfScriptsBar"></i></div>
+                      <b id="perfScriptsValue">0 KB</b>
+                    </div>
+                    <div class="perf-size-row">
+                      <span>Images</span>
+                      <div class="perf-size-track"><i id="perfImagesBar"></i></div>
+                      <b id="perfImagesValue">0 KB</b>
+                    </div>
+                    <svg class="perf-sparkline" viewBox="0 0 180 36" aria-hidden="true">
+                      <polyline id="perfFpsSparkline" points="" />
+                    </svg>
+                  </div>
                 </div>
-                <div class="perf-item">
-                  <span class="perf-label">Size (Scripts / Images)</span>
-                  <strong id="perfAssetSize">Calculating...</strong>
-                </div>
-                <div class="perf-item">
-                  <span class="perf-label">RAM (Chrome only)</span>
-                  <strong id="perfHeap">Checking...</strong>
-                </div>
+                <p id="perfStatus" class="perf-status">Estimating metrics for this POC...</p>
               </div>
-              <p id="perfStatus" class="perf-status">Estimating metrics for this POC...</p>
             </section>
-            <section class="code-panel">
+            <section class="code-panel is-collapsed">
               <div class="code-panel-head">
                 <h3>HTML</h3>
-                <button class="code-copy-btn" data-copy-target="codeHtml" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-                  <span>Copy</span>
-                </button>
+                <div class="panel-head-actions">
+                  <button class="code-copy-btn" data-copy-target="codeHtml" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+                    <span>Copy</span>
+                  </button>
+                  <button class="panel-toggle-btn" type="button" aria-expanded="false" aria-label="Toggle HTML panel">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
+                  </button>
+                </div>
               </div>
-              <pre class="code-view"><code id="codeHtml" class="language-markup"></code></pre>
+              <div class="panel-body">
+                <pre class="code-view"><code id="codeHtml" class="language-markup"></code></pre>
+              </div>
             </section>
-            <section class="code-panel">
+            <section class="code-panel is-collapsed">
               <div class="code-panel-head">
                 <h3>CSS</h3>
-                <button class="code-copy-btn" data-copy-target="codeCss" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-                  <span>Copy</span>
-                </button>
+                <div class="panel-head-actions">
+                  <button class="code-copy-btn" data-copy-target="codeCss" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+                    <span>Copy</span>
+                  </button>
+                  <button class="panel-toggle-btn" type="button" aria-expanded="false" aria-label="Toggle CSS panel">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
+                  </button>
+                </div>
               </div>
-              <pre class="code-view"><code id="codeCss" class="language-css"></code></pre>
+              <div class="panel-body">
+                <pre class="code-view"><code id="codeCss" class="language-css"></code></pre>
+              </div>
             </section>
-            <section class="code-panel">
+            <section class="code-panel is-collapsed">
               <div class="code-panel-head">
                 <h3>JS</h3>
-                <button class="code-copy-btn" data-copy-target="codeJs" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
-                  <span>Copy</span>
-                </button>
+                <div class="panel-head-actions">
+                  <button class="code-copy-btn" data-copy-target="codeJs" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+                    <span>Copy</span>
+                  </button>
+                  <button class="panel-toggle-btn" type="button" aria-expanded="false" aria-label="Toggle JS panel">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
+                  </button>
+                </div>
               </div>
-              <pre class="code-view"><code id="codeJs" class="language-javascript"></code></pre>
+              <div class="panel-body">
+                <pre class="code-view"><code id="codeJs" class="language-javascript"></code></pre>
+              </div>
             </section>
           </aside>
         </main>

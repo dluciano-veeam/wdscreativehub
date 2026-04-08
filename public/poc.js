@@ -14,7 +14,17 @@ const perfFps = document.getElementById('perfFps');
 const perfAssetSize = document.getElementById('perfAssetSize');
 const perfHeap = document.getElementById('perfHeap');
 const perfStatus = document.getElementById('perfStatus');
+const perfFpsArc = document.getElementById('perfFpsArc');
+const perfFpsNeedle = document.getElementById('perfFpsNeedle');
+const perfRamArc = document.getElementById('perfRamArc');
+const perfRamNeedle = document.getElementById('perfRamNeedle');
+const perfScriptsBar = document.getElementById('perfScriptsBar');
+const perfImagesBar = document.getElementById('perfImagesBar');
+const perfScriptsValue = document.getElementById('perfScriptsValue');
+const perfImagesValue = document.getElementById('perfImagesValue');
+const perfFpsSparkline = document.getElementById('perfFpsSparkline');
 const copyButtons = Array.from(document.querySelectorAll('.code-copy-btn'));
+const panelToggleButtons = Array.from(document.querySelectorAll('.panel-toggle-btn'));
 const modalOverlay = document.getElementById('modalOverlay');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const cancelModalBtn = document.getElementById('cancelModalBtn');
@@ -47,6 +57,7 @@ let memoryGaugeTimer = null;
 let fpsGaugeHandle = 0;
 let fpsGaugeTimer = null;
 let fpsGaugeWindow = null;
+let fpsHistory = [];
 
 function openDetailFullView() {
   if (fullViewTimer) clearTimeout(fullViewTimer);
@@ -89,6 +100,18 @@ function initMobileSidebar() {
     if (!window.matchMedia('(max-width: 960px)').matches) {
       closeMenu();
     }
+  });
+}
+
+function initCollapsiblePanels() {
+  panelToggleButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const section = btn.closest('.perf-panel, .code-panel');
+      if (!section) return;
+      const willCollapse = !section.classList.contains('is-collapsed');
+      section.classList.toggle('is-collapsed', willCollapse);
+      btn.setAttribute('aria-expanded', willCollapse ? 'false' : 'true');
+    });
   });
 }
 
@@ -170,17 +193,19 @@ async function fetchTextSafe(url) {
 
 async function buildCodePanels(sourceHtml, entryPath) {
   const parser = new DOMParser();
-  const doc = parser.parseFromString(sourceHtml || '', 'text/html');
+  const sourceDoc = parser.parseFromString(sourceHtml || '', 'text/html');
+  const htmlDoc = parser.parseFromString(sourceHtml || '', 'text/html');
 
   const cssParts = [];
   const jsParts = [];
 
-  doc.querySelectorAll('style').forEach((el) => {
+  sourceDoc.querySelectorAll('style').forEach((el) => {
     const text = (el.textContent || '').trim();
     if (text) cssParts.push(text);
   });
+  htmlDoc.querySelectorAll('style').forEach((el) => el.remove());
 
-  const styleLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"][href]'));
+  const styleLinks = Array.from(sourceDoc.querySelectorAll('link[rel="stylesheet"][href]'));
   for (const link of styleLinks) {
     const href = link.getAttribute('href') || '';
     const resolved = resolveAssetPath(entryPath, href);
@@ -190,7 +215,7 @@ async function buildCodePanels(sourceHtml, entryPath) {
     }
   }
 
-  const scripts = Array.from(doc.querySelectorAll('script'));
+  const scripts = Array.from(sourceDoc.querySelectorAll('script'));
   for (const script of scripts) {
     const src = script.getAttribute('src');
     if (src) {
@@ -204,8 +229,9 @@ async function buildCodePanels(sourceHtml, entryPath) {
     const text = (script.textContent || '').trim();
     if (text) jsParts.push(text);
   }
+  htmlDoc.querySelectorAll('script:not([src])').forEach((el) => el.remove());
 
-  const htmlOutput = sourceHtml && sourceHtml.trim() ? sourceHtml.trim() : 'Source unavailable.';
+  const htmlOutput = htmlDoc.documentElement?.outerHTML?.trim() || 'Source unavailable.';
   const cssOutput = cssParts.length ? cssParts.join('\n\n') : 'No CSS source found.';
   const jsOutput = jsParts.length ? jsParts.join('\n\n') : 'No JS source found.';
 
@@ -254,6 +280,18 @@ function sanitizeFileName(value) {
     .replace(/(^-|-$)/g, '') || 'poc';
 }
 
+function getExportPackageSlug(item) {
+  const fromTitle = sanitizeFileName(item?.title || '');
+  if (fromTitle && fromTitle !== 'poc' && fromTitle !== 'untitled') return fromTitle;
+
+  const fromId = sanitizeFileName(item?.id || '');
+  if (fromId && !fromId.startsWith('untitled-poc-')) return fromId;
+
+  const entry = item?.entry || '';
+  const lastSegment = sanitizeFileName(entry.split('/').filter(Boolean).slice(-2, -1)[0] || '');
+  return lastSegment && lastSegment !== 'poc' ? lastSegment : 'poc';
+}
+
 function isExternalOrDataPath(value) {
   return !value || /^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:');
 }
@@ -282,14 +320,84 @@ function formatKB(bytes) {
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
 
-function readIframeHeapText() {
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function setNeedleRotation(needleEl, degrees) {
+  if (!needleEl) return;
+  needleEl.setAttribute('transform', `rotate(${degrees} 60 60)`);
+}
+
+function setGaugeArc(arcEl, pct, color) {
+  if (!arcEl) return;
+  arcEl.style.strokeDasharray = `${clamp(pct, 0, 100)} 100`;
+  if (color) arcEl.style.stroke = color;
+}
+
+function updateFpsSparkline(fpsValue) {
+  if (!perfFpsSparkline) return;
+  fpsHistory.push(clamp(fpsValue, 0, 120));
+  if (fpsHistory.length > 28) fpsHistory = fpsHistory.slice(-28);
+  const points = fpsHistory.map((value, idx) => {
+    const x = (idx / 27) * 180;
+    const y = 34 - (clamp(value, 0, 60) / 60) * 30;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  perfFpsSparkline.setAttribute('points', points.join(' '));
+}
+
+function updateFpsGaugeVisual(fpsValue) {
+  const safeFps = clamp(Number(fpsValue) || 0, 0, 120);
+  const pct = clamp((safeFps / 60) * 100, 0, 100);
+  const color = safeFps < 30 ? '#d92f2f' : (safeFps < 45 ? '#f2a41a' : '#00d15f');
+  setGaugeArc(perfFpsArc, pct, color);
+  setNeedleRotation(perfFpsNeedle, -90 + (pct / 100) * 180);
+}
+
+function readIframeMemory() {
   try {
     const memory = detailFrame?.contentWindow?.performance?.memory;
-    if (!memory || !Number.isFinite(memory.usedJSHeapSize)) return 'N/A';
-    return `${(memory.usedJSHeapSize / (1024 * 1024)).toFixed(2)} MB`;
+    if (!memory || !Number.isFinite(memory.usedJSHeapSize)) return { supported: false };
+    return {
+      supported: true,
+      used: memory.usedJSHeapSize,
+      total: Number.isFinite(memory.totalJSHeapSize) ? memory.totalJSHeapSize : 0
+    };
   } catch {
-    return 'N/A';
+    return { supported: false };
   }
+}
+
+function readIframeHeapText() {
+  const memory = readIframeMemory();
+  if (!memory.supported) return 'N/A';
+  return `${(memory.used / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function updateRamGaugeVisual() {
+  const memory = readIframeMemory();
+  if (!memory.supported) {
+    setGaugeArc(perfRamArc, 0, '#8a94a4');
+    setNeedleRotation(perfRamNeedle, -90);
+    return;
+  }
+  const usedPct = memory.total > 0 ? clamp((memory.used / memory.total) * 100, 0, 100) : 0;
+  const color = usedPct > 85 ? '#d92f2f' : (usedPct > 70 ? '#f2a41a' : '#00d15f');
+  setGaugeArc(perfRamArc, usedPct, color);
+  setNeedleRotation(perfRamNeedle, -90 + (usedPct / 100) * 180);
+}
+
+function updateSizeBars(sizeBreakdown) {
+  const scripts = sizeBreakdown?.scripts || 0;
+  const images = sizeBreakdown?.images || 0;
+  const total = scripts + images;
+  const scriptsPct = total > 0 ? (scripts / total) * 100 : 0;
+  const imagesPct = total > 0 ? (images / total) * 100 : 0;
+  if (perfScriptsBar) perfScriptsBar.style.width = `${scriptsPct.toFixed(1)}%`;
+  if (perfImagesBar) perfImagesBar.style.width = `${imagesPct.toFixed(1)}%`;
+  if (perfScriptsValue) perfScriptsValue.textContent = formatKB(scripts);
+  if (perfImagesValue) perfImagesValue.textContent = formatKB(images);
 }
 
 async function calculatePocPackageSizeBytes(item, htmlSource) {
@@ -350,6 +458,8 @@ function stopFpsGauge() {
   }
   fpsGaugeHandle = 0;
   fpsGaugeWindow = null;
+  fpsHistory = [];
+  if (perfFpsSparkline) perfFpsSparkline.setAttribute('points', '');
 }
 
 function startFpsGauge() {
@@ -364,6 +474,8 @@ function startFpsGauge() {
   }
   if (!targetWindow || !targetWindow.requestAnimationFrame) {
     perfFps.textContent = 'N/A';
+    perfFps.classList.remove('perf-low');
+    updateFpsGaugeVisual(0);
     return;
   }
 
@@ -379,8 +491,20 @@ function startFpsGauge() {
     const fpsValue = frameCount;
     perfFps.textContent = `${fpsValue} fps`;
     perfFps.classList.toggle('perf-low', fpsValue < 30);
+    updateFpsGaugeVisual(fpsValue);
+    updateFpsSparkline(fpsValue);
     frameCount = 0;
   }, 1000);
+}
+
+function handleDetailFrameLoad() {
+  injectTypographyIntoFrame();
+  if (perfHeap) {
+    perfHeap.textContent = readIframeHeapText();
+  }
+  // Re-arm FPS measurement after iframe navigation; previous RAF callbacks
+  // may be dropped when the frame swaps documents.
+  startFpsGauge();
 }
 
 async function updatePerformanceGauge(item, htmlSource) {
@@ -396,10 +520,14 @@ async function updatePerformanceGauge(item, htmlSource) {
   perfAssetSize.textContent = 'Calculating...';
   perfHeap.textContent = 'Checking...';
   perfStatus.textContent = 'Estimating metrics for this POC...';
+  updateFpsGaugeVisual(0);
+  updateRamGaugeVisual();
 
   const sizeBreakdown = await calculatePocPackageSizeBytes(item, htmlSource);
-  perfAssetSize.textContent = `${formatKB(sizeBreakdown.scripts)} / ${formatKB(sizeBreakdown.images)}`;
+  perfAssetSize.textContent = `${formatKB(sizeBreakdown.scripts + sizeBreakdown.images)} total`;
+  updateSizeBars(sizeBreakdown);
   perfHeap.textContent = readIframeHeapText();
+  updateRamGaugeVisual();
   startFpsGauge();
   perfStatus.textContent = perfHeap.textContent === 'N/A'
     ? 'RAM check is available only in Chrome-based browsers.'
@@ -408,6 +536,7 @@ async function updatePerformanceGauge(item, htmlSource) {
   memoryGaugeTimer = setInterval(() => {
     if (document.hidden) return;
     perfHeap.textContent = readIframeHeapText();
+    updateRamGaugeVisual();
   }, 3000);
 }
 
@@ -450,6 +579,79 @@ function collectUrlsFromCss(cssText, cssFilePath) {
   return refs;
 }
 
+function splitInlineAssetsFromHtml(sourceHtml, entryPath) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(sourceHtml || '', 'text/html');
+  const inlineCss = [];
+  const inlineJs = [];
+
+  doc.querySelectorAll('style').forEach((node) => {
+    const text = (node.textContent || '').trim();
+    if (text) inlineCss.push(text);
+    node.remove();
+  });
+
+  doc.querySelectorAll('script:not([src])').forEach((node) => {
+    const text = (node.textContent || '').trim();
+    if (text) inlineJs.push(text);
+    node.remove();
+  });
+
+  const hasHead = !!doc.head;
+  const hasBody = !!doc.body;
+  if (inlineCss.length) {
+    const cssRef = './wdslabs-inline.css';
+    const link = doc.createElement('link');
+    link.setAttribute('rel', 'stylesheet');
+    link.setAttribute('href', cssRef);
+    if (hasHead) {
+      doc.head.appendChild(link);
+    } else {
+      doc.documentElement.appendChild(link);
+    }
+  }
+
+  if (inlineJs.length) {
+    const jsRef = './wdslabs-inline.js';
+    const script = doc.createElement('script');
+    script.setAttribute('src', jsRef);
+    if (hasBody) {
+      doc.body.appendChild(script);
+    } else {
+      doc.documentElement.appendChild(script);
+    }
+  }
+
+  const baseEntryRel = toProjectRelativePath(entryPath || 'index.html');
+  const baseDir = baseEntryRel.includes('/') ? baseEntryRel.slice(0, baseEntryRel.lastIndexOf('/') + 1) : '';
+
+  return {
+    html: `<!doctype html>\n${doc.documentElement.outerHTML}`,
+    inlineCssText: inlineCss.join('\n\n').trim(),
+    inlineJsText: inlineJs.join('\n\n').trim(),
+    inlineCssPath: `${baseDir}wdslabs-inline.css`,
+    inlineJsPath: `${baseDir}wdslabs-inline.js`
+  };
+}
+
+function getExportBaseDir(entryPath) {
+  const relEntry = toProjectRelativePath(entryPath || 'index.html');
+  const entryDir = relEntry.includes('/') ? relEntry.slice(0, relEntry.lastIndexOf('/') + 1) : '';
+  const distMarker = '/dist/';
+  const distIdx = entryDir.lastIndexOf(distMarker);
+  if (distIdx >= 0) return entryDir.slice(0, distIdx + distMarker.length);
+  return entryDir;
+}
+
+function toExportRelativePath(absolutePath, exportBaseDir) {
+  const rel = toProjectRelativePath(absolutePath);
+  if (exportBaseDir && rel.startsWith(exportBaseDir)) {
+    return rel.slice(exportBaseDir.length) || 'index.html';
+  }
+  const clean = rel.split('/').pop() || rel;
+  return clean || 'asset';
+}
+
 async function exportCurrentPocZip() {
   if (!currentItem) return;
   if (!window.JSZip) {
@@ -459,7 +661,7 @@ async function exportCurrentPocZip() {
 
   const item = currentItem;
   const zip = new window.JSZip();
-  const rootFolder = sanitizeFileName(item.id || item.title);
+  const rootFolder = getExportPackageSlug(item);
   const base = zip.folder(rootFolder);
   if (!base) return;
 
@@ -469,14 +671,24 @@ async function exportCurrentPocZip() {
     return;
   }
 
+  const split = splitInlineAssetsFromHtml(htmlSource, item.entry || '/index.html');
+  const exportBaseDir = getExportBaseDir(item.entry || '/index.html');
+
   if (item.entry) {
-    const entryRel = toProjectRelativePath(item.entry);
-    base.file(entryRel, htmlSource);
+    const entryRel = toExportRelativePath(item.entry, exportBaseDir);
+    base.file(entryRel, split.html);
   } else {
-    base.file('index.html', htmlSource);
+    base.file('index.html', split.html);
   }
 
-  const assets = collectAssetCandidatesFromHtml(htmlSource, item.entry || '/index.html');
+  if (split.inlineCssText) {
+    base.file(toExportRelativePath(split.inlineCssPath, exportBaseDir), split.inlineCssText);
+  }
+  if (split.inlineJsText) {
+    base.file(toExportRelativePath(split.inlineJsPath, exportBaseDir), split.inlineJsText);
+  }
+
+  const assets = collectAssetCandidatesFromHtml(split.html, item.entry || '/index.html');
   const queue = Array.from(assets);
   const added = new Set();
 
@@ -487,7 +699,7 @@ async function exportCurrentPocZip() {
 
     const data = await fetchBinarySafe(absolutePath);
     if (!data) continue;
-    const rel = toProjectRelativePath(absolutePath);
+    const rel = toExportRelativePath(absolutePath, exportBaseDir);
     base.file(rel, data);
 
     if (rel.endsWith('.css')) {
@@ -508,7 +720,7 @@ async function exportCurrentPocZip() {
     'Run with a local static server from this ZIP root:',
     'npx serve .',
     '',
-    `Open: ${item.entry ? toProjectRelativePath(item.entry) : 'index.html'}`
+    `Open: ${item.entry ? toExportRelativePath(item.entry, exportBaseDir) : 'index.html'}`
   ].join('\n');
   base.file('README.txt', readme);
 
@@ -523,7 +735,7 @@ async function exportCurrentPocZip() {
 }
 
 document.body.classList.add('page-ready');
-detailFrame.addEventListener('load', injectTypographyIntoFrame);
+detailFrame.addEventListener('load', handleDetailFrameLoad);
 
 copyButtons.forEach((btn) => {
   btn.addEventListener('click', async () => {
@@ -751,4 +963,5 @@ if (pocForm) {
 }
 
 initMobileSidebar();
+initCollapsiblePanels();
 loadDetail();

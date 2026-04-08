@@ -43,6 +43,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 25 * 1024 * 1024 } });
 
+function slugify(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function nextAvailableSlug(baseSlug, existingIds) {
+  const base = slugify(baseSlug) || 'poc';
+  if (!existingIds.has(base)) return base;
+  let i = 2;
+  while (existingIds.has(`${base}-${i}`)) {
+    i += 1;
+  }
+  return `${base}-${i}`;
+}
+
 function maybeMultipart(req, res, next) {
   if (req.is('multipart/form-data')) {
     return upload.fields([
@@ -178,11 +195,11 @@ app.post('/api/pocs', maybeMultipart, async (req, res) => {
             ? normalizeHtmlSource(`<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>${safeTitle}</title>\n  <style>\n    body { margin: 0; font-family: \"ES Build\", \"Segoe UI\", sans-serif; display: grid; place-items: center; min-height: 100vh; background: #f7f9fa; }\n    .card { padding: 24px 28px; border-radius: 16px; background: #ffffff; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 12px 28px rgba(0,0,0,0.1); }\n  </style>\n</head>\n<body>\n  <div class=\"card\">${safeTitle}</div>\n</body>\n</html>`)
             : '';
     const data = await loadData();
-    const id = safeTitle
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-    const finalId = `${id}-${Date.now().toString(36)}`;
+    const existingIds = new Set((data.items || []).map((item) => item.id).filter(Boolean));
+    const titleSlug = slugify(title || '');
+    const briefSlug = slugify((brief || '').split(/\s+/).slice(0, 6).join(' '));
+    const baseSlug = titleSlug || briefSlug || `poc-${Date.now().toString(36)}`;
+    const finalId = nextAvailableSlug(baseSlug, existingIds);
     let thumbPath = await ensureThumb(finalId);
     if (req.files?.thumbnail?.[0]) {
       const file = req.files.thumbnail[0];

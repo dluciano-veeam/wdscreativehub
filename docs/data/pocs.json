@@ -15,7 +15,7 @@
       "entry": "/pocs/animated-mask-reveal/index.html"
     },
     {
-      "id": "untitled-poc-mn68ston",
+      "id": "liquid-glass-switcher-css",
       "title": "Liquid Glass Switcher Css",
       "description": "Liquid Glass Switcher Css is an uploaded ZIP demo focused on css patterns, ready for review and refinement.",
       "brief": "Create a new POC exactly as we have on the zip file",
@@ -26,10 +26,10 @@
       "thumbnail": "/assets/uploads/thumbnail-1774466504937-oatp33.png",
       "briefImages": [],
       "aiPending": false,
-      "entry": "/pocs/untitled-poc-mn68ston/liquid-glass-switcher-css/dist/index.html"
+      "entry": "/pocs/liquid-glass-switcher-css/dist/index.html"
     },
     {
-      "id": "untitled-poc-mn54cni5",
+      "id": "hollow-topographic-metaballs",
       "title": "Hollow Topographic Metaballs",
       "description": "Animated hollow metaballs layered over topographic contours, producing organic field deformation with smooth shader-driven motion.",
       "brief": "Analyse the zip file and mimic the exact functionallities on a new POC",
@@ -43,10 +43,10 @@
       "thumbnail": "/assets/uploads/thumbnail-1774448027245-o0y2hl.png",
       "briefImages": [],
       "aiPending": false,
-      "entry": "/pocs/untitled-poc-mn54cni5/hollow-topographic-metaballs/dist/index.html"
+      "entry": "/pocs/hollow-topographic-metaballs/dist/index.html"
     },
     {
-      "id": "untitled-poc-mn4zefjf",
+      "id": "holographic-glitch-interface",
       "title": "Holographic Glitch Interface",
       "description": "Pure CSS composition with glitch typography, holographic card treatment, grain texture, and subtle pseudo-3D depth cues.",
       "brief": "Mimic the attached zip file",
@@ -60,10 +60,10 @@
       "thumbnail": "/assets/uploads/thumbnail-1774379149407-dnora5.png",
       "briefImages": [],
       "aiPending": false,
-      "entry": "/pocs/untitled-poc-mn4zefjf/holographic-glitch-css-only/dist/index.html"
+      "entry": "/pocs/holographic-glitch-interface/dist/index.html"
     },
     {
-      "id": "animated-toggle-mn4z93rg",
+      "id": "animated-toggle",
       "title": "Animated toggle",
       "description": "Animated toggle is an uploaded ZIP demo focused on animation patterns, ready for review and refinement.",
       "brief": "Preciso que aplique o viridis da Veeam nesse estilo",
@@ -74,10 +74,10 @@
       "thumbnail": "/assets/uploads/thumbnail-1774449368509-vfwbii.png",
       "briefImages": [],
       "aiPending": false,
-      "entry": "/pocs/animated-toggle-mn4z93rg/pill-togglecpc-true-false/dist/index.html"
+      "entry": "/pocs/animated-toggle/dist/index.html"
     },
     {
-      "id": "untitled-poc-mn4ymhn8",
+      "id": "pixel-loader",
       "title": "Pixel Loader",
       "description": "Retro pixel-style loading animation with stepped timing and compact looping motion, ideal for hero preload moments and playful UI states.",
       "brief": "Copiar como referência o que existe em https://codepen.io/artzub/pen/XJJooON",
@@ -91,10 +91,10 @@
       "thumbnail": "/assets/uploads/thumbnail-1774378029443-44xh9n.png",
       "briefImages": [],
       "aiPending": false,
-      "entry": "/pocs/untitled-poc-mn4ymhn8/pixeled-loader/dist/index.html"
+      "entry": "/pocs/pixel-loader/dist/index.html"
     },
     {
-      "id": "untitled-poc-mn4reete",
+      "id": "card-beam-stream",
       "title": "Card Beam Stream",
       "description": "Animated card conveyor with scanning beam, particle field, and motion controls for high-impact hero visuals.",
       "brief": "https://codepen.io/blacklead-studio/pen/xbwaqxE\r\nquero copiar isso, porém implementando o look and feel da Veeam",
@@ -108,7 +108,7 @@
       "thumbnail": "/assets/uploads/thumbnail-1774376945633-p7og4a.png",
       "briefImages": [],
       "aiPending": false,
-      "entry": "/pocs/untitled-poc-mn4reete/card-beam-animation/dist/index.html"
+      "entry": "/pocs/card-beam-stream/dist/index.html"
     },
     {
       "id": "electric-border-viridis",
