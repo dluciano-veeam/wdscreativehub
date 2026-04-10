@@ -420,7 +420,7 @@ body.sidebar-collapsed .shell {
 }
 
 .subtitle.scan-status-ok {
-  color: #0e7f3f;
+  color: var(--veeam-viridis);
   font-weight: 600;
   font-size: 0.82rem;
   line-height: 1.2;
