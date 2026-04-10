@@ -125,15 +125,30 @@ async function fetchClient() {
 }
 
 async function fetchStaticReport() {
-  try {
-    const res = await fetch('data/media-inventory-reports.json?v=2');
-    if (!res.ok) throw new Error('no static report');
-    const payload = await res.json();
-    const report = payload?.items?.[clientId];
-    return report ? normalizeReport(report) : null;
-  } catch {
-    return null;
+  const candidates = [
+    withBasePath('/data/media-inventory-reports.json?v=3'),
+    './data/media-inventory-reports.json?v=3',
+    'data/media-inventory-reports.json?v=3'
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const payload = await res.json();
+      const items = payload?.items && typeof payload.items === 'object' ? payload.items : {};
+      const direct = items[clientId];
+      if (direct) return normalizeReport(direct);
+
+      const firstKey = Object.keys(items)[0];
+      if (firstKey && items[firstKey]) {
+        return normalizeReport(items[firstKey]);
+      }
+    } catch {
+      // try next candidate
+    }
   }
+  return null;
 }
 
 async function fetchLastReport() {
