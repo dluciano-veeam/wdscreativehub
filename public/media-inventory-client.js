@@ -24,6 +24,7 @@ let currentClient = null;
 let currentReport = null;
 let pageFilter = '';
 let typeFilter = 'all';
+let apiAvailable = true;
 
 function withBasePath(path) {
   if (!path) return '';
@@ -113,28 +114,51 @@ async function fetchClient() {
     const res = await fetch(withBasePath('/api/media-inventory/clients'));
     if (!res.ok) throw new Error('api unavailable');
     const clients = normalizeItems(await res.json());
+    apiAvailable = true;
     return clients.find((item) => item.id === clientId) || null;
   } catch {
     const res = await fetch(CLIENTS_FALLBACK);
     const clients = normalizeItems(await res.json());
+    apiAvailable = false;
     return clients.find((item) => item.id === clientId) || null;
   }
 }
 
-async function fetchLastReport() {
-  if (!clientId) return null;
+async function fetchStaticReport() {
   try {
-    const res = await fetch(withBasePath(`/api/media-inventory/reports/${encodeURIComponent(clientId)}`));
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error(`Failed to load last report (${res.status})`);
-    return normalizeReport(await res.json());
+    const res = await fetch('data/media-inventory-reports.json?v=2');
+    if (!res.ok) throw new Error('no static report');
+    const payload = await res.json();
+    const report = payload?.items?.[clientId];
+    return report ? normalizeReport(report) : null;
   } catch {
     return null;
   }
 }
 
+async function fetchLastReport() {
+  if (!clientId) return null;
+  if (!apiAvailable) {
+    return fetchStaticReport();
+  }
+  try {
+    const res = await fetch(withBasePath(`/api/media-inventory/reports/${encodeURIComponent(clientId)}`));
+    if (res.status === 404) {
+      return fetchStaticReport();
+    }
+    if (!res.ok) throw new Error(`Failed to load last report (${res.status})`);
+    return normalizeReport(await res.json());
+  } catch {
+    return fetchStaticReport();
+  }
+}
+
 async function runScan() {
   if (!currentClient?.website) return;
+  if (!apiAvailable) {
+    setStatus('Run scan is disabled in online static mode. This page shows the latest persisted report.');
+    return;
+  }
   const previousLabel = runScanBtn.querySelector('span')?.textContent || 'Run scan';
   const labelNode = runScanBtn.querySelector('span');
   runScanBtn.setAttribute('aria-disabled', 'true');
@@ -333,6 +357,12 @@ async function init() {
   inventoryCrumb.textContent = currentClient.name || 'Client';
   inventorySiteLink.href = currentClient.website || '#';
 
+  if (!apiAvailable) {
+    runScanBtn.disabled = true;
+    runScanBtn.setAttribute('aria-disabled', 'true');
+    runScanBtn.title = 'Disabled in static online mode';
+  }
+
   const savedReport = await fetchLastReport();
   if (savedReport) {
     currentReport = savedReport;
@@ -343,7 +373,11 @@ async function init() {
   } else {
     currentReport = normalizeReport(null);
     renderReport();
-    setStatus('No saved scan yet. Click "Run scan" to map all internal pages and media files.');
+    setStatus(
+      apiAvailable
+        ? 'No saved scan yet. Click "Run scan" to map all internal pages and media files.'
+        : 'No persisted report found for online mode yet.'
+    );
   }
 }
 
