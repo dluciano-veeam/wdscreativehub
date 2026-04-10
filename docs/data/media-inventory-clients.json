@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "id": "veeam",
+      "name": "Veeam",
+      "website": "https://www.veeam.com/",
+      "thumbnail": "/assets/veeam-logo.svg",
+      "thumbnailFit": "contain",
+      "region": "Global",
+      "category": "Data Resilience",
+      "status": "monitoring",
+      "trackingSince": "2026-04-10",
+      "notes": "Media inventory baseline for design guideline rollout.",
+      "labels": ["Primary Website", "Brand", "Design Migration"]
+    }
+  ]
+}

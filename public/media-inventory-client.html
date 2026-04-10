@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WDS LABS - Competitive Dashboard</title>
+  <title>WDS LABS - Media Inventory Dashboard</title>
   <link rel="icon" href="https://www.veeam.com/favicon.ico">
   <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Medium.woff2" as="font" type="font/woff2" crossorigin>
@@ -20,11 +20,11 @@
           <span>WDS LABS</span>
         </a>
         <nav class="side-nav">
-          <a class="side-link active" href="./competitive.html">
+          <a class="side-link" href="./competitive.html">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18v2H3v-2zm2-3h3V8H5v8zm5 0h3V4h-3v12zm5 0h3v-6h-3v6z"/></svg>
             <span>Competitive Analysis</span>
           </a>
-          <a class="side-link" href="./media-inventory.html">
+          <a class="side-link active" href="./media-inventory.html">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5zm2 2v10h12V7H6zm2 2h5v5H8V9zm6 0h2v2h-2V9zm0 3h2v2h-2v-2z"/></svg>
             <span>Media Inventory</span>
           </a>
@@ -50,44 +50,67 @@
           </button>
         </div>
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="./competitive.html">Competitive Analysis</a>
+          <a href="./media-inventory.html">Media Inventory</a>
           <span>/</span>
-          <span id="clientCrumb">Client dashboard</span>
+          <span id="inventoryCrumb">Client dashboard</span>
         </nav>
 
         <header class="hero">
           <div>
-            <h1 id="clientTitle" class="hero-title">Competitor</h1>
-            <p id="clientSubtitle" class="subtitle"></p>
+            <h1 id="inventoryClientTitle" class="hero-title">Media Inventory</h1>
+            <p id="inventoryClientSubtitle" class="subtitle"></p>
           </div>
           <div class="hero-actions">
-            <a id="clientSiteLink" class="button" target="_blank" rel="noreferrer noopener">
+            <button id="runScanBtn" class="button add-poc" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6a6 6 0 0 1-6 6 6 6 0 0 1-5.65-4H4.26A8 8 0 0 0 12 20a8 8 0 0 0 0-16z"/></svg>
+              <span>Run scan</span>
+            </button>
+            <a id="inventorySiteLink" class="button" target="_blank" rel="noreferrer noopener">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z"/></svg>
-              <span>Visit competitor site</span>
+              <span>Visit site</span>
             </a>
-            <a class="button ghost" href="./competitive.html">
+            <a class="button ghost" href="./media-inventory.html">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h8v8H3V4zm10 0h8v8h-8V4zM3 14h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
               <span>Back to list</span>
             </a>
           </div>
         </header>
 
-        <section class="competitive-kpis" id="kpiRow"></section>
+        <p id="inventoryStatus" class="competitive-baseline-note hidden"></p>
 
-        <main class="competitive-dashboard">
-          <section class="preview-block competitive-frame-wrap">
-            <div class="preview-header">
-              <h3>Live snapshot</h3>
-            </div>
-            <img id="snapshotImage" class="competitive-snapshot" alt="Competitor snapshot" />
-          </section>
+        <section class="competitive-kpis media-kpis" id="mediaKpiRow"></section>
 
-          <section class="preview-block competitive-updates-wrap">
-            <div class="preview-header">
-              <h3>Technical update timeline (UI/UX only)</h3>
+        <main class="media-dashboard">
+          <section class="preview-block media-page-table-wrap">
+            <div class="preview-header media-table-head">
+              <h3>Media inventory by page</h3>
+              <div class="media-table-tools">
+                <label for="pageFilterInput" class="filter-label">Filter pages</label>
+                <input id="pageFilterInput" class="input media-filter-input" type="search" placeholder="ex: /contact" />
+                <label for="typeFilterSelect" class="filter-label">Asset type</label>
+                <select id="typeFilterSelect" class="input media-filter-select">
+                  <option value="all">All types</option>
+                </select>
+              </div>
             </div>
-            <p id="baselineNote" class="competitive-baseline-note hidden"></p>
-            <div id="updatesTimeline" class="competitive-updates"></div>
+            <div class="media-table-scroll">
+              <table class="media-table">
+                <thead>
+                  <tr>
+                    <th>Page</th>
+                    <th>Total</th>
+                    <th>Hidden</th>
+                    <th>PNG</th>
+                    <th>JPG</th>
+                    <th>JPEG</th>
+                    <th>SVG</th>
+                    <th>Video</th>
+                    <th>Assets</th>
+                  </tr>
+                </thead>
+                <tbody id="mediaTableBody"></tbody>
+              </table>
+            </div>
           </section>
         </main>
       </div>
@@ -96,6 +119,6 @@
   <button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="Close menu"></button>
 
   <script src="./sidebar.js"></script>
-  <script src="./competitive-client.js"></script>
+  <script src="./media-inventory-client.js"></script>
 </body>
 </html>

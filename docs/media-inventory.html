@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WDS LABS - Competitive Analysis</title>
+  <title>WDS LABS - Media Inventory</title>
   <link rel="icon" href="https://www.veeam.com/favicon.ico">
   <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="./assets/fonts/esbuild/ESBuildNeutral-Medium.woff2" as="font" type="font/woff2" crossorigin>
@@ -20,11 +20,11 @@
           <span>WDS LABS</span>
         </a>
         <nav class="side-nav">
-          <a class="side-link active" href="./competitive.html">
+          <a class="side-link" href="./competitive.html">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18v2H3v-2zm2-3h3V8H5v8zm5 0h3V4h-3v12zm5 0h3v-6h-3v6z"/></svg>
             <span>Competitive Analysis</span>
           </a>
-          <a class="side-link" href="./media-inventory.html">
+          <a class="side-link active" href="./media-inventory.html">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5zm2 2v10h12V7H6zm2 2h5v5H8V9zm6 0h2v2h-2V9zm0 3h2v2h-2v-2z"/></svg>
             <span>Media Inventory</span>
           </a>
@@ -48,24 +48,24 @@
           <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-label="Toggle menu" aria-expanded="false">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
           </button>
-          <input id="competitorSearch" class="input" type="search" placeholder="Search competitors" />
+          <input id="inventorySearch" class="input" type="search" placeholder="Search clients" />
         </div>
 
         <header class="hero">
           <div>
-            <h1 class="hero-title hero-title--gradient">Competitive Analysis</h1>
-            <p class="subtitle">Track meaningful UI/UX and product interaction changes by competitor.</p>
+            <h1 class="hero-title hero-title--gradient">Media Inventory</h1>
+            <p class="subtitle">Map every media asset by page to accelerate design guideline rollout.</p>
           </div>
         </header>
 
         <section class="filters">
-          <div class="filter-label">Monitored competitors</div>
-          <div id="competitiveCount" class="filter-label competitive-count"></div>
+          <div class="filter-label">Tracked websites</div>
+          <div id="inventoryCount" class="filter-label competitive-count"></div>
         </section>
 
         <main class="layout single">
           <section class="gallery">
-            <div id="competitorGrid" class="grid"></div>
+            <div id="inventoryGrid" class="grid competitive-grid"></div>
           </section>
         </main>
       </div>
@@ -74,6 +74,6 @@
   <button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="Close menu"></button>
 
   <script src="./sidebar.js"></script>
-  <script src="./competitive.js"></script>
+  <script src="./media-inventory.js"></script>
 </body>
 </html>
