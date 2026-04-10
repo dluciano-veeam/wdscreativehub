@@ -189,7 +189,7 @@ const MEDIA_TYPE_BY_EXT = new Map([
   ['avif', 'avif'],
   ['svg', 'svg'],
   ['mp4', 'video'],
-  ['webm', 'video'],
+  ['webm', 'webm'],
   ['mov', 'video'],
   ['m4v', 'video'],
   ['m3u8', 'video'],
@@ -201,7 +201,7 @@ const MEDIA_TYPE_BY_EXT = new Map([
   ['ogg', 'audio']
 ]);
 
-const TRACKED_MEDIA_TYPES = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg', 'video', 'lottie', 'json', 'audio', 'other'];
+const TRACKED_MEDIA_TYPES = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg', 'webm', 'video', 'lottie', 'json', 'audio', 'other'];
 
 function initTypeCounters() {
   return TRACKED_MEDIA_TYPES.reduce((acc, type) => {
@@ -368,7 +368,9 @@ function extractMediaFromHtml({ html, pageUrl, hiddenSelectors }) {
     const absUrl = toAbsoluteUrl(pageUrl, primarySrc);
     if (absUrl) {
       const fallbackType = tagName === 'video' || tagName === 'source'
-        ? (/\.(mp4|mov|webm|m3u8|m4v|ogv)(\?|$)/i.test(absUrl) ? 'video' : '')
+        ? (/\.(webm)(\?|$)/i.test(absUrl)
+            ? 'webm'
+            : (/\.(mp4|mov|m3u8|m4v|ogv)(\?|$)/i.test(absUrl) ? 'video' : ''))
         : tagName === 'audio'
           ? 'audio'
           : '';
@@ -425,6 +427,210 @@ function extractMediaFromHtml({ html, pageUrl, hiddenSelectors }) {
   }
 
   return media;
+}
+
+function extractMediaFromCssBlocks({ cssBlocks, pageUrl, hiddenSelectors }) {
+  const media = [];
+  const seen = new Set();
+  const blocks = Array.isArray(cssBlocks) ? cssBlocks : [];
+
+  blocks.forEach((cssText) => {
+    if (!cssText) return;
+    const ruleRegex = /([^{}]+)\{([^{}]+)\}/g;
+    let ruleMatch = ruleRegex.exec(cssText);
+    while (ruleMatch) {
+      const selectorGroup = (ruleMatch[1] || '').trim();
+      const declaration = ruleMatch[2] || '';
+      if (!selectorGroup || !/url\(/i.test(declaration)) {
+        ruleMatch = ruleRegex.exec(cssText);
+        continue;
+      }
+
+      const selectors = selectorGroup.split(',').map((s) => s.trim()).filter(Boolean);
+      const isHiddenByRule = /display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0/i.test(declaration);
+      const selectorHintsHidden = selectors.some((selector) => {
+        if (hiddenSelectors.has(selector)) return true;
+        return /(^|[\s>+~.#\[:])(hidden|sr-only|visually-hidden|collapsed)([\s>+~.#\[:]|$)/i.test(selector);
+      });
+      const hiddenReasons = [];
+      if (isHiddenByRule) hiddenReasons.push('css-rule-hidden');
+      if (selectorHintsHidden) hiddenReasons.push('css-selector-hidden');
+
+      const urlRegex = /url\(([^)]+)\)/gi;
+      let urlMatch = urlRegex.exec(declaration);
+      while (urlMatch) {
+        const cssUrl = toAbsoluteUrl(pageUrl, urlMatch[1]);
+        if (!cssUrl) {
+          urlMatch = urlRegex.exec(declaration);
+          continue;
+        }
+        const type = classifyMediaType(cssUrl, '');
+        if (type === 'other') {
+          urlMatch = urlRegex.exec(declaration);
+          continue;
+        }
+        const key = `${selectorGroup}|${cssUrl}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          media.push({
+            url: cssUrl,
+            type,
+            extension: getExtensionFromUrl(cssUrl) || type,
+            element: 'css-background',
+            visibility: hiddenReasons.length ? 'hidden' : 'visible',
+            hiddenReasons: [...hiddenReasons],
+            via: 'css-url',
+            thumbnailUrl: cssUrl
+          });
+        }
+        urlMatch = urlRegex.exec(declaration);
+      }
+
+      ruleMatch = ruleRegex.exec(cssText);
+    }
+  });
+
+  return media;
+}
+
+function extractLottieFromHtml({ html, pageUrl, hiddenSelectors }) {
+  const items = [];
+  const seen = new Set();
+
+  const maybeAdd = (urlCandidate, fallback = 'lottie', meta = {}) => {
+    const absUrl = toAbsoluteUrl(pageUrl, urlCandidate);
+    if (!absUrl) return;
+    const type = classifyMediaType(absUrl, fallback);
+    if (type !== 'lottie' && !/\.lottie(\?|$)|\.json(\?|$)/i.test(absUrl)) return;
+    const key = `${meta.element || 'lottie'}|${absUrl}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    items.push({
+      url: absUrl,
+      type: 'lottie',
+      extension: getExtensionFromUrl(absUrl) || 'lottie',
+      element: meta.element || 'script',
+      visibility: meta.visibility || 'visible',
+      hiddenReasons: meta.hiddenReasons || [],
+      via: meta.via || 'lottie-detection',
+      thumbnailUrl: ''
+    });
+  };
+
+  const lottieAssetRegex = /(['"`])([^'"`]+\.(?:lottie|json)(?:\?[^'"`]*)?)\1/gi;
+  let lottieMatch = lottieAssetRegex.exec(html);
+  while (lottieMatch) {
+    const raw = lottieMatch[2] || '';
+    if (/lottie|bodymovin|animation|dotlottie|player/i.test(html.slice(Math.max(0, lottieMatch.index - 120), lottieMatch.index + 240))) {
+      maybeAdd(raw, 'lottie', { element: 'script', via: 'lottie-json-or-dotlottie' });
+    }
+    lottieMatch = lottieAssetRegex.exec(html);
+  }
+
+  const canvasRegex = /<canvas\b([^>]*)>/gi;
+  let canvasMatch = canvasRegex.exec(html);
+  let canvasIndex = 0;
+  while (canvasMatch) {
+    canvasIndex += 1;
+    const attrs = extractAttributes(canvasMatch[1] || '');
+    const markers = [
+      attrs.class,
+      attrs.id,
+      attrs['data-animation'],
+      attrs['data-animation-path'],
+      attrs['data-lottie'],
+      attrs['data-dotlottie'],
+      attrs['data-src'],
+      attrs['data-url']
+    ].join(' ');
+    const looksLikeLottieCanvas = /lottie|dotlottie|bodymovin|animation/i.test(markers)
+      || /lottie|dotlottie|bodymovin/i.test(html.slice(Math.max(0, canvasMatch.index - 220), canvasMatch.index + 420));
+    if (looksLikeLottieCanvas) {
+      const vis = resolveVisibility({
+        tagName: 'canvas',
+        attrs,
+        hiddenSelectors,
+        hasScriptHideHints: /classList\.(add|toggle)\(['"]hidden['"]|style\.display\s*=\s*['"]none['"]/i.test(html)
+      });
+      const key = `canvas-lottie-${canvasIndex}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        items.push({
+          url: `${pageUrl}#lottie-canvas-${canvasIndex}`,
+          type: 'lottie',
+          extension: 'canvas',
+          element: 'canvas',
+          visibility: vis.visibility,
+          hiddenReasons: vis.reasons,
+          via: 'canvas-lottie-hint',
+          thumbnailUrl: ''
+        });
+      }
+      const urlCandidates = [
+        attrs['data-animation-path'],
+        attrs['data-src'],
+        attrs['data-url'],
+        attrs['data-dotlottie'],
+        attrs['data-lottie']
+      ].filter(Boolean);
+      urlCandidates.forEach((candidate) => maybeAdd(candidate, 'lottie', { element: 'canvas', via: 'canvas-data-attribute' }));
+    }
+    canvasMatch = canvasRegex.exec(html);
+  }
+
+  const inlineLottieRegex = /<(svg|div|section)\b([^>]*)>/gi;
+  let inlineMatch = inlineLottieRegex.exec(html);
+  let inlineIndex = 0;
+  while (inlineMatch) {
+    inlineIndex += 1;
+    const tagName = (inlineMatch[1] || '').toLowerCase();
+    const attrs = extractAttributes(inlineMatch[2] || '');
+    const markers = [
+      attrs.class,
+      attrs.id,
+      attrs['data-animation'],
+      attrs['data-animation-path'],
+      attrs['data-lottie'],
+      attrs['data-dotlottie'],
+      attrs['data-src'],
+      attrs['data-url'],
+      attrs['aria-label']
+    ].join(' ');
+    const looksLikeInlineLottie = /lottie|dotlottie|bodymovin|bm-animation|bm-container/i.test(markers);
+    if (looksLikeInlineLottie) {
+      const vis = resolveVisibility({
+        tagName,
+        attrs,
+        hiddenSelectors,
+        hasScriptHideHints: /classList\.(add|toggle)\(['"]hidden['"]|style\.display\s*=\s*['"]none['"]/i.test(html)
+      });
+      const key = `inline-${tagName}-${inlineIndex}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        items.push({
+          url: `${pageUrl}#lottie-${tagName}-${inlineIndex}`,
+          type: 'lottie',
+          extension: 'inline',
+          element: tagName,
+          visibility: vis.visibility,
+          hiddenReasons: vis.reasons,
+          via: 'inline-lottie-hint',
+          thumbnailUrl: ''
+        });
+      }
+      const urlCandidates = [
+        attrs['data-animation-path'],
+        attrs['data-src'],
+        attrs['data-url'],
+        attrs['data-dotlottie'],
+        attrs['data-lottie']
+      ].filter(Boolean);
+      urlCandidates.forEach((candidate) => maybeAdd(candidate, 'lottie', { element: tagName, via: 'inline-lottie-data-attribute' }));
+    }
+    inlineMatch = inlineLottieRegex.exec(html);
+  }
+
+  return items;
 }
 
 async function fetchText(url, timeoutMs = 12000) {
@@ -507,10 +713,36 @@ async function crawlMediaInventory({ rootUrl, maxPages = 25 }) {
       pageUrl: current,
       hiddenSelectors
     });
+    const cssMediaItems = extractMediaFromCssBlocks({
+      cssBlocks: styleBlocks,
+      pageUrl: current,
+      hiddenSelectors
+    });
+    const lottieItems = extractLottieFromHtml({
+      html,
+      pageUrl: current,
+      hiddenSelectors
+    });
+    const merged = [...mediaItems];
+    const mergedKeys = new Set(merged.map((item) => `${item.element}|${item.url}`));
+    cssMediaItems.forEach((item) => {
+      const key = `${item.element}|${item.url}`;
+      if (!mergedKeys.has(key)) {
+        mergedKeys.add(key);
+        merged.push(item);
+      }
+    });
+    lottieItems.forEach((item) => {
+      const key = `${item.element}|${item.url}`;
+      if (!mergedKeys.has(key)) {
+        mergedKeys.add(key);
+        merged.push(item);
+      }
+    });
 
     const byType = initTypeCounters();
     let hiddenMedia = 0;
-    mediaItems.forEach((item) => {
+    merged.forEach((item) => {
       const type = TRACKED_MEDIA_TYPES.includes(item.type) ? item.type : 'other';
       byType[type] += 1;
       totals.byType[type] += 1;
@@ -534,10 +766,10 @@ async function crawlMediaInventory({ rootUrl, maxPages = 25 }) {
       url: current,
       path: pagePath || '/',
       title: title || pagePath || current,
-      mediaCount: mediaItems.length,
+      mediaCount: merged.length,
       hiddenMediaCount: hiddenMedia,
       byType,
-      media: mediaItems
+      media: merged
     });
 
     const links = extractHrefCandidates(html, current);

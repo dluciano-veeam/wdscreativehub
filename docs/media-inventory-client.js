@@ -5,9 +5,18 @@ const inventorySiteLink = document.getElementById('inventorySiteLink');
 const runScanBtn = document.getElementById('runScanBtn');
 const inventoryStatus = document.getElementById('inventoryStatus');
 const mediaKpiRow = document.getElementById('mediaKpiRow');
-const mediaTableBody = document.getElementById('mediaTableBody');
+const pageCardsGrid = document.getElementById('pageCardsGrid');
 const pageFilterInput = document.getElementById('pageFilterInput');
-const typeFilterSelect = document.getElementById('typeFilterSelect');
+const exportFilteredCsvBtn = document.getElementById('exportFilteredCsvBtn');
+const exportAllCsvBtn = document.getElementById('exportAllCsvBtn');
+const mediaModalOverlay = document.getElementById('mediaModalOverlay');
+const closeMediaModalBtn = document.getElementById('closeMediaModalBtn');
+const mediaModalTitle = document.getElementById('mediaModalTitle');
+const mediaModalSubtitle = document.getElementById('mediaModalSubtitle');
+const mediaModalOpenPageLink = document.getElementById('mediaModalOpenPageLink');
+const mediaModalTypeFilterSelect = document.getElementById('mediaModalTypeFilterSelect');
+const mediaModalStats = document.getElementById('mediaModalStats');
+const mediaModalAssets = document.getElementById('mediaModalAssets');
 const mobileMenuToggle = document.getElementById('mobileMenuToggle');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
 const sidebar = document.querySelector('.sidebar');
@@ -19,12 +28,14 @@ const SITE_BASE_PATH = window.location.pathname.includes('/wdscreativehub/')
   ? '/wdscreativehub'
   : '';
 
-const typeOrder = ['png', 'jpg', 'jpeg', 'svg', 'video', 'lottie', 'webp', 'gif', 'avif', 'json', 'audio', 'other'];
+const typeOrder = ['png', 'jpg', 'jpeg', 'svg', 'webm', 'video', 'lottie', 'webp', 'gif', 'avif', 'json', 'audio', 'other'];
 let currentClient = null;
 let currentReport = null;
 let pageFilter = '';
-let typeFilter = 'all';
 let apiAvailable = true;
+let hoverPreview = null;
+let activePage = null;
+let modalTypeFilter = 'all';
 
 function withBasePath(path) {
   if (!path) return '';
@@ -78,9 +89,21 @@ function formatDate(value) {
 
 function setStatus(message, type = 'info') {
   if (!inventoryStatus) return;
-  inventoryStatus.textContent = message || '';
-  inventoryStatus.classList.toggle('hidden', !message);
-  inventoryStatus.classList.toggle('status-error', type === 'error');
+  const shouldShow = Boolean(message) && type === 'error';
+  inventoryStatus.textContent = shouldShow ? message : '';
+  inventoryStatus.classList.toggle('hidden', !shouldShow);
+  inventoryStatus.classList.toggle('status-error', shouldShow);
+}
+
+function setSubtitle(message, status = 'neutral') {
+  if (!inventoryClientSubtitle) return;
+  const normalized = String(message || '').trim();
+  const withPrefix = status === 'ok'
+    ? `✓ ${normalized}`
+    : normalized;
+  inventoryClientSubtitle.textContent = withPrefix;
+  inventoryClientSubtitle.classList.toggle('scan-status-ok', status === 'ok');
+  inventoryClientSubtitle.classList.toggle('scan-status-neutral', status !== 'ok');
 }
 
 function normalizeReport(raw) {
@@ -171,7 +194,7 @@ async function fetchLastReport() {
 async function runScan() {
   if (!currentClient?.website) return;
   if (!apiAvailable) {
-    setStatus('Run scan is disabled in online static mode. This page shows the latest persisted report.');
+    setSubtitle('Run scan disabled in static mode', 'neutral');
     return;
   }
   const previousLabel = runScanBtn.querySelector('span')?.textContent || 'Run scan';
@@ -180,7 +203,7 @@ async function runScan() {
   runScanBtn.disabled = true;
   runScanBtn.classList.add('is-loading');
   if (labelNode) labelNode.textContent = 'Scanning';
-  setStatus('Scanning pages and collecting media inventory. This can take a few moments...');
+  setSubtitle('Scanning pages and collecting media assets...', 'neutral');
   try {
     const res = await fetch(withBasePath('/api/media-inventory/scan'), {
       method: 'POST',
@@ -198,10 +221,13 @@ async function runScan() {
     const report = normalizeReport(await res.json());
     currentReport = report;
     renderReport();
-    setStatus(
-      `Scan completed on ${formatDate(report.scannedAt)}. ${report.totals.pages} pages and ${report.totals.media} media files inventoried.`
+    setSubtitle(
+      `Last saved scan: ${formatDate(report.persistedAt || report.scannedAt)} • ${report.totals.pages} pages • ${report.totals.media} assets`,
+      'ok'
     );
+    setStatus('', 'info');
   } catch (err) {
+    setSubtitle('Scan failed. Please retry.', 'neutral');
     setStatus(
       `${err.message}. Start with \`npm run dev\` to enable live crawl and make sure the server has internet access.`,
       'error'
@@ -216,8 +242,9 @@ async function runScan() {
 
 function mediaThumb(url, type) {
   if (!url) return '';
-  if (type === 'video') {
-    return `<div class="media-asset-thumb media-asset-thumb--video"><span>Video</span></div>`;
+  if (type === 'video' || type === 'webm') {
+    const label = type === 'webm' ? 'WEBM' : 'Video';
+    return `<div class="media-asset-thumb media-asset-thumb--video"><span>${label}</span></div>`;
   }
   return `<img src="${url}" alt="${type} asset thumbnail" loading="lazy" />`;
 }
@@ -229,7 +256,7 @@ function mediaAssetPill(asset) {
     : asset.type.toUpperCase();
   const thumb = mediaThumb(asset.thumbnailUrl || asset.url, asset.type);
   return `
-    <a class="media-asset-pill ${hiddenClass}" href="${asset.url}" target="_blank" rel="noreferrer noopener" title="${title}">
+    <a class="media-asset-pill ${hiddenClass}" href="${asset.url}" target="_blank" rel="noreferrer noopener" title="${title}" data-preview-url="${asset.type === 'video' ? '' : (asset.thumbnailUrl || asset.url || '')}" data-preview-label="${asset.type.toUpperCase()}">
       <span class="media-asset-preview">${thumb}</span>
       <span class="media-asset-meta">
         <strong>${asset.type}</strong>
@@ -237,6 +264,16 @@ function mediaAssetPill(asset) {
       </span>
     </a>
   `;
+}
+
+function pageScreenshotSources(url) {
+  if (!url) {
+    return { primary: '', fallback: '' };
+  }
+  return {
+    primary: `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=1600`,
+    fallback: ''
+  };
 }
 
 function getTypeCount(byType, key) {
@@ -252,37 +289,21 @@ function countByType(items = []) {
   return counters;
 }
 
-function renderTypeOptions(report) {
-  const byType = report?.totals?.byType || {};
-  const available = Object.keys(byType).filter((key) => Number(byType[key]) > 0);
-  const sorted = available.sort((a, b) => a.localeCompare(b));
-
-  typeFilterSelect.innerHTML = '<option value="all">All types</option>';
-  sorted.forEach((type) => {
-    const option = document.createElement('option');
-    option.value = type;
-    option.textContent = type.toUpperCase();
-    typeFilterSelect.appendChild(option);
-  });
-
-  if (!sorted.includes(typeFilter)) {
-    typeFilter = 'all';
-  }
-  typeFilterSelect.value = typeFilter;
-}
-
 function renderKpis(report) {
   const byType = report.totals.byType || {};
-  const cards = [
+  const baseCards = [
     { label: 'Pages scanned', value: report.totals.pages },
     { label: 'Total media', value: report.totals.media },
-    { label: 'Hidden media', value: report.totals.hiddenMedia },
-    { label: 'PNG', value: getTypeCount(byType, 'png') },
-    { label: 'JPG', value: getTypeCount(byType, 'jpg') },
-    { label: 'JPEG', value: getTypeCount(byType, 'jpeg') },
-    { label: 'SVG', value: getTypeCount(byType, 'svg') },
-    { label: 'Videos', value: getTypeCount(byType, 'video') }
+    { label: 'Hidden media', value: report.totals.hiddenMedia }
   ];
+  const typeCards = Object.keys(byType)
+    .filter((type) => Number(byType[type]) > 0)
+    .sort((a, b) => a.localeCompare(b))
+    .map((type) => ({
+      label: type.toUpperCase(),
+      value: getTypeCount(byType, type)
+    }));
+  const cards = [...baseCards, ...typeCards];
 
   mediaKpiRow.innerHTML = '';
   cards.forEach((card) => {
@@ -293,16 +314,13 @@ function renderKpis(report) {
   });
 }
 
-function renderRows(report) {
-  const pages = report.pages
+function getFilteredPages(report) {
+  return report.pages
     .map((page) => {
       const media = Array.isArray(page.media) ? page.media : [];
-      const filteredMedia = typeFilter === 'all'
-        ? media
-        : media.filter((item) => (item.type || 'other') === typeFilter);
       return {
         ...page,
-        mediaFiltered: filteredMedia
+        mediaFiltered: media
       };
     })
     .filter((page) => {
@@ -310,51 +328,268 @@ function renderRows(report) {
     const haystack = `${page.path || ''} ${page.title || ''} ${page.url || ''}`.toLowerCase();
     return haystack.includes(pageFilter);
     })
-    .filter((page) => page.mediaFiltered.length > 0);
+    .filter((page) => page.mediaFiltered.length > 0)
+    .sort((a, b) => {
+      const pathA = String(a.path || '');
+      const pathB = String(b.path || '');
+      const isHomeA = pathA === '/' || pathA === '';
+      const isHomeB = pathB === '/' || pathB === '';
+      if (isHomeA !== isHomeB) return isHomeA ? -1 : 1;
+      const depthA = pathA.split('/').filter(Boolean).length;
+      const depthB = pathB.split('/').filter(Boolean).length;
+      if (depthA !== depthB) return depthA - depthB;
+      return pathA.localeCompare(pathB);
+    });
+}
 
-  mediaTableBody.innerHTML = '';
+function renderPageCards(report) {
+  const pages = getFilteredPages(report);
+
+  pageCardsGrid.innerHTML = '';
   if (!pages.length) {
-    const row = document.createElement('tr');
-    row.innerHTML = '<td colspan="9" class="media-table-empty">No pages match this filter.</td>';
-    mediaTableBody.appendChild(row);
+    const empty = document.createElement('div');
+    empty.className = 'media-table-empty';
+    empty.textContent = 'No pages match this filter.';
+    pageCardsGrid.appendChild(empty);
     return;
   }
 
   pages.forEach((page) => {
     const media = Array.isArray(page.mediaFiltered) ? page.mediaFiltered : [];
     const counts = countByType(media);
-    const assets = media
-      .slice()
-      .sort((a, b) => typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type))
-      .slice(0, 28);
     const hidden = media.filter((item) => item.visibility === 'hidden').length;
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>
-        <a class="media-page-link" href="${page.url || '#'}" target="_blank" rel="noreferrer noopener">
-          <div class="media-page-main">
-            <strong>${page.path || page.url || '/'}</strong>
-            <small>${page.title || page.url || ''}</small>
-          </div>
-        </a>
-      </td>
-      <td>${media.length}</td>
-      <td>${hidden}</td>
-      <td>${getTypeCount(counts, 'png')}</td>
-      <td>${getTypeCount(counts, 'jpg')}</td>
-      <td>${getTypeCount(counts, 'jpeg')}</td>
-      <td>${getTypeCount(counts, 'svg')}</td>
-      <td>${getTypeCount(counts, 'video')}</td>
-      <td><div class="media-assets-cell">${assets.map(mediaAssetPill).join('')}</div></td>
+    const shots = pageScreenshotSources(page.url);
+    const card = document.createElement('article');
+    card.className = 'media-page-card';
+    card.innerHTML = `
+      <div class="media-page-shot">
+        <img src="${shots.primary}" data-fallback-src="${shots.fallback}" alt="Screenshot of ${page.path || page.url || 'page'}" loading="lazy">
+      </div>
+      <div class="media-page-content">
+        <div class="media-page-main">
+          <strong>${page.path || page.url || '/'}</strong>
+          <small>${page.title || page.url || ''}</small>
+        </div>
+        <div class="media-page-meta-grid">
+          <span><b>Total</b>${media.length}</span>
+          <span><b>Hidden</b>${hidden}</span>
+          <span><b>PNG</b>${getTypeCount(counts, 'png')}</span>
+          <span><b>JPG</b>${getTypeCount(counts, 'jpg')}</span>
+          <span><b>JPEG</b>${getTypeCount(counts, 'jpeg')}</span>
+          <span><b>WEBP</b>${getTypeCount(counts, 'webp')}</span>
+          <span><b>SVG</b>${getTypeCount(counts, 'svg')}</span>
+          <span><b>WEBM</b>${getTypeCount(counts, 'webm')}</span>
+          <span><b>Video</b>${getTypeCount(counts, 'video')}</span>
+          <span><b>Lottie</b>${getTypeCount(counts, 'lottie')}</span>
+        </div>
+      </div>
     `;
-    mediaTableBody.appendChild(row);
+    const shotImg = card.querySelector('.media-page-shot img');
+    if (shotImg) {
+      shotImg.addEventListener('error', () => {
+        const fallback = shotImg.dataset.fallbackSrc || '';
+        if (fallback && shotImg.src !== fallback) {
+          shotImg.src = fallback;
+          return;
+        }
+        shotImg.classList.add('is-missing');
+      }, { once: false });
+    }
+    card.addEventListener('click', () => {
+      activePage = page;
+      openPageModal(page);
+    });
+    pageCardsGrid.appendChild(card);
+  });
+}
+
+function openPageModal(page) {
+  const allMedia = Array.isArray(page.mediaFiltered) ? page.mediaFiltered : [];
+  const available = Object.keys(countByType(allMedia)).sort((a, b) => a.localeCompare(b));
+  mediaModalTypeFilterSelect.innerHTML = '<option value="all">All types</option>';
+  available.forEach((type) => {
+    const option = document.createElement('option');
+    option.value = type;
+    option.textContent = type.toUpperCase();
+    mediaModalTypeFilterSelect.appendChild(option);
+  });
+  if (modalTypeFilter !== 'all' && !available.includes(modalTypeFilter)) {
+    modalTypeFilter = 'all';
+  }
+  mediaModalTypeFilterSelect.value = modalTypeFilter;
+
+  const media = modalTypeFilter === 'all'
+    ? allMedia
+    : allMedia.filter((item) => (item.type || 'other') === modalTypeFilter);
+  const counts = countByType(media);
+  mediaModalTitle.textContent = page.path || page.url || '/';
+  mediaModalSubtitle.textContent = page.title || page.url || '';
+  if (mediaModalOpenPageLink) {
+    mediaModalOpenPageLink.href = page.url || '#';
+    mediaModalOpenPageLink.setAttribute('aria-disabled', page.url ? 'false' : 'true');
+  }
+  mediaModalStats.innerHTML = `
+    <span class="tag-chip">Total ${media.length}</span>
+    <span class="tag-chip">Hidden ${media.filter((item) => item.visibility === 'hidden').length}</span>
+    <span class="tag-chip">PNG ${getTypeCount(counts, 'png')}</span>
+    <span class="tag-chip">JPG ${getTypeCount(counts, 'jpg')}</span>
+    <span class="tag-chip">JPEG ${getTypeCount(counts, 'jpeg')}</span>
+    <span class="tag-chip">WEBP ${getTypeCount(counts, 'webp')}</span>
+    <span class="tag-chip">SVG ${getTypeCount(counts, 'svg')}</span>
+    <span class="tag-chip">WEBM ${getTypeCount(counts, 'webm')}</span>
+    <span class="tag-chip">Video ${getTypeCount(counts, 'video')}</span>
+    <span class="tag-chip">Lottie ${getTypeCount(counts, 'lottie')}</span>
+  `;
+  mediaModalAssets.innerHTML = `
+    <div class="media-assets-cell">
+      ${media.map(mediaAssetPill).join('')}
+    </div>
+  `;
+  mediaModalOverlay.classList.remove('hidden');
+}
+
+function closePageModal() {
+  activePage = null;
+  modalTypeFilter = 'all';
+  mediaModalOverlay.classList.add('hidden');
+}
+
+function initModalEvents() {
+  closeMediaModalBtn.addEventListener('click', closePageModal);
+  mediaModalOverlay.addEventListener('click', (event) => {
+    if (event.target === mediaModalOverlay) {
+      closePageModal();
+    }
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !mediaModalOverlay.classList.contains('hidden')) {
+      closePageModal();
+    }
+  });
+}
+
+function renderRows(report) {
+  renderPageCards(report);
+  if (activePage) {
+    const pages = getFilteredPages(report);
+    const match = pages.find((item) => item.url === activePage.url);
+    if (match) {
+      openPageModal(match);
+    } else {
+      closePageModal();
+    }
+  }
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function downloadCsv(filename, rows) {
+  const content = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(href);
+}
+
+function buildCsvRows({ filteredOnly }) {
+  const report = normalizeReport(currentReport);
+  const pages = filteredOnly ? getFilteredPages(report) : report.pages.map((page) => ({
+    ...page,
+    mediaFiltered: Array.isArray(page.media) ? page.media : []
+  }));
+
+  const header = [
+    'client_id',
+    'root_url',
+    'page_url',
+    'page_path',
+    'page_title',
+    'asset_type',
+    'asset_extension',
+    'asset_url',
+    'element',
+    'visibility',
+    'hidden_reasons',
+    'source'
+  ];
+
+  const rows = [header];
+  pages.forEach((page) => {
+    (page.mediaFiltered || []).forEach((asset) => {
+      rows.push([
+        report.clientId || clientId || '',
+        report.rootUrl || '',
+        page.url || '',
+        page.path || '',
+        page.title || '',
+        asset.type || '',
+        asset.extension || '',
+        asset.url || '',
+        asset.element || '',
+        asset.visibility || '',
+        (asset.hiddenReasons || []).join('|'),
+        asset.via || ''
+      ]);
+    });
+  });
+
+  return rows;
+}
+
+function createHoverPreview() {
+  if (hoverPreview) return hoverPreview;
+  const node = document.createElement('div');
+  node.className = 'media-hover-preview hidden';
+  node.innerHTML = '<img alt="Asset preview"><span></span>';
+  document.body.appendChild(node);
+  hoverPreview = node;
+  return hoverPreview;
+}
+
+function initAssetHoverPreview() {
+  const preview = createHoverPreview();
+  const image = preview.querySelector('img');
+  const label = preview.querySelector('span');
+
+  document.addEventListener('mouseover', (event) => {
+    const target = event.target.closest('.media-asset-pill');
+    if (!target) return;
+    const url = target.dataset.previewUrl || '';
+    if (!url) return;
+    image.src = url;
+    label.textContent = target.dataset.previewLabel || '';
+    preview.classList.remove('hidden');
+  });
+
+  document.addEventListener('mouseout', (event) => {
+    if (event.target.closest('.media-asset-pill')) {
+      preview.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('mousemove', (event) => {
+    if (preview.classList.contains('hidden')) return;
+    const offset = 16;
+    const maxX = window.innerWidth - preview.offsetWidth - 8;
+    const maxY = window.innerHeight - preview.offsetHeight - 8;
+    const x = Math.min(maxX, event.clientX + offset);
+    const y = Math.min(maxY, event.clientY + offset);
+    preview.style.left = `${Math.max(8, x)}px`;
+    preview.style.top = `${Math.max(8, y)}px`;
   });
 }
 
 function renderReport() {
   const report = normalizeReport(currentReport);
   renderKpis(report);
-  renderTypeOptions(report);
   renderRows(report);
 }
 
@@ -368,7 +603,7 @@ async function init() {
   }
 
   inventoryClientTitle.textContent = `${currentClient.name} Media Inventory`;
-  inventoryClientSubtitle.textContent = `${currentClient.category || 'Category not set'} • ${currentClient.region || 'Region not set'}`;
+  setSubtitle('Loading latest persisted snapshot...', 'neutral');
   inventoryCrumb.textContent = currentClient.name || 'Client';
   inventorySiteLink.href = currentClient.website || '#';
 
@@ -382,12 +617,20 @@ async function init() {
   if (savedReport) {
     currentReport = savedReport;
     renderReport();
-    setStatus(
-      `Loaded last saved scan from ${formatDate(savedReport.persistedAt || savedReport.scannedAt)}. ${savedReport.totals.pages} pages and ${savedReport.totals.media} media files inventoried.`
+    setSubtitle(
+      `Last saved scan: ${formatDate(savedReport.persistedAt || savedReport.scannedAt)} • ${savedReport.totals.pages} pages • ${savedReport.totals.media} assets`,
+      'ok'
     );
+    setStatus('', 'info');
   } else {
     currentReport = normalizeReport(null);
     renderReport();
+    setSubtitle(
+      apiAvailable
+        ? 'No saved scan yet'
+        : 'Static mode: no persisted snapshot found yet',
+      'neutral'
+    );
     setStatus(
       apiAvailable
         ? 'No saved scan yet. Click "Run scan" to map all internal pages and media files.'
@@ -401,12 +644,24 @@ pageFilterInput.addEventListener('input', (event) => {
   renderRows(normalizeReport(currentReport));
 });
 
-typeFilterSelect.addEventListener('change', (event) => {
-  typeFilter = event.target.value || 'all';
-  renderRows(normalizeReport(currentReport));
+mediaModalTypeFilterSelect.addEventListener('change', (event) => {
+  modalTypeFilter = event.target.value || 'all';
+  if (activePage) {
+    openPageModal(activePage);
+  }
 });
 
 runScanBtn.addEventListener('click', runScan);
+exportFilteredCsvBtn.addEventListener('click', () => {
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  downloadCsv(`media-inventory-${clientId}-filtered-${stamp}.csv`, buildCsvRows({ filteredOnly: true }));
+});
+exportAllCsvBtn.addEventListener('click', () => {
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  downloadCsv(`media-inventory-${clientId}-all-${stamp}.csv`, buildCsvRows({ filteredOnly: false }));
+});
 
 initMobileSidebar();
+initAssetHoverPreview();
+initModalEvents();
 init();
